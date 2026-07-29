@@ -1,0 +1,263 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRight, Link2, Sparkles, ChevronRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { YouTubeIcon, InstagramIcon, TikTokIcon } from '../components/PlatformIcon';
+
+const PLATFORMS = [
+  { name: 'YouTube', icon: YouTubeIcon, color: '#FF0000', hint: 'youtube.com' },
+  { name: 'Instagram', icon: InstagramIcon, color: '#E1306C', hint: 'instagram.com' },
+  { name: 'TikTok', icon: TikTokIcon, color: '#ffffff', hint: 'tiktok.com' },
+];
+
+const EXAMPLE_URLS = [
+  'https://youtube.com/watch?v=dQw4w9WgXcQ',
+  'https://www.instagram.com/reel/ABC123/',
+  'https://www.tiktok.com/@user/video/123',
+];
+
+function isValidUrl(url) {
+  try {
+    const u = new URL(url);
+    return ['youtube.com', 'youtu.be', 'instagram.com', 'tiktok.com'].some((d) =>
+      u.hostname.includes(d)
+    );
+  } catch {
+    return false;
+  }
+}
+
+export default function Submit() {
+  const navigate = useNavigate();
+  const [url, setUrl] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!url.trim()) {
+      setError('Please paste a video URL to continue.');
+      return;
+    }
+    if (!isValidUrl(url)) {
+      setError('Please enter a valid YouTube, Instagram, or TikTok URL.');
+      return;
+    }
+
+    setError('');
+    setIsLoading(true);
+
+    // Simulate a brief "submitting" state then navigate
+    await new Promise((r) => setTimeout(r, 700));
+
+    // In production, POST to /api/jobs and get back a jobId
+    const jobId = `job_${Date.now()}`;
+    navigate(`/processing/${jobId}`);
+  };
+
+  const handleExampleClick = (exUrl) => {
+    setUrl(exUrl);
+    setError('');
+  };
+
+  const detectedPlatform = PLATFORMS.find((p) => url.includes(p.hint));
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-16 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/8 rounded-full blur-[120px]" />
+        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-purple-500/5 rounded-full blur-[80px]" />
+        {/* Grid pattern */}
+        <div
+          className="absolute inset-0 opacity-[0.025]"
+          style={{
+            backgroundImage:
+              'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
+            backgroundSize: '50px 50px',
+          }}
+        />
+      </div>
+
+      <motion.div
+        className="relative z-10 w-full max-w-xl flex flex-col items-center text-center gap-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        {/* Badge */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1 }}
+          className="flex items-center gap-2 bg-accent/15 border border-accent/30 text-accent-light px-4 py-1.5 rounded-full text-sm font-medium"
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          AI-Powered Video Clipping
+        </motion.div>
+
+        {/* Headline */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="space-y-3"
+        >
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-tight">
+            <span className="gradient-text">Clip the best moments,</span>
+            <br />
+            <span className="accent-gradient-text">automatically.</span>
+          </h1>
+          <p className="text-muted text-lg max-w-sm mx-auto leading-relaxed">
+            Paste a link. Our AI transcribes, ranks, and clips the top moments for you — in seconds.
+          </p>
+        </motion.div>
+
+        {/* Input form */}
+        <motion.form
+          onSubmit={handleSubmit}
+          className="w-full space-y-4"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <div className="relative group">
+            {/* Platform indicator */}
+            {detectedPlatform && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-10"
+              >
+                <detectedPlatform.icon
+                  className="w-5 h-5"
+                  style={{ color: detectedPlatform.color }}
+                />
+              </motion.div>
+            )}
+            {!detectedPlatform && (
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
+                <Link2 className="w-5 h-5 text-muted" />
+              </div>
+            )}
+
+            <input
+              id="video-url-input"
+              type="url"
+              value={url}
+              onChange={(e) => {
+                setUrl(e.target.value);
+                setError('');
+              }}
+              placeholder="Paste a YouTube, Instagram, or TikTok URL..."
+              className={`
+                w-full bg-surface border text-primary placeholder-muted
+                pl-12 pr-40 py-4 rounded-2xl text-sm transition-all duration-200
+                focus:outline-none focus:ring-2 focus:ring-accent/20
+                ${error ? 'border-danger/60 focus:border-danger' : 'border-border focus:border-accent'}
+              `}
+              autoFocus
+            />
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              id="rank-and-clip-btn"
+              className={`
+                absolute right-2 top-1/2 -translate-y-1/2
+                flex items-center gap-2 bg-accent hover:bg-accent-hover text-white
+                font-semibold px-5 py-2.5 rounded-xl text-sm
+                transition-all duration-200
+                disabled:opacity-70 disabled:cursor-not-allowed
+              `}
+            >
+              {isLoading ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  Rank &amp; Clip
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </div>
+
+          {error && (
+            <motion.p
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-danger text-sm text-left px-1"
+            >
+              {error}
+            </motion.p>
+          )}
+        </motion.form>
+
+        {/* Platform icons */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="flex flex-col items-center gap-3"
+        >
+          <p className="text-xs text-muted">Supports</p>
+          <div className="flex items-center gap-6">
+            {PLATFORMS.map((platform) => (
+              <div key={platform.name} className="flex flex-col items-center gap-1.5 group cursor-default">
+                <div className="w-10 h-10 rounded-2xl bg-surface border border-border flex items-center justify-center transition-all duration-200 group-hover:border-accent/30 group-hover:bg-card">
+                  <platform.icon className="w-5 h-5" style={{ color: platform.color }} />
+                </div>
+                <span className="text-[10px] text-muted/60 font-medium">{platform.name}</span>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Example URLs */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="w-full"
+        >
+          <p className="text-xs text-muted mb-2">Try an example:</p>
+          <div className="flex flex-wrap gap-2 justify-center">
+            {EXAMPLE_URLS.map((exUrl) => (
+              <button
+                key={exUrl}
+                onClick={() => handleExampleClick(exUrl)}
+                className="flex items-center gap-1.5 text-xs bg-surface hover:bg-card border border-border hover:border-accent/30 text-muted hover:text-primary px-3 py-1.5 rounded-lg transition-all duration-200"
+              >
+                <ChevronRight className="w-3 h-3" />
+                {exUrl.replace('https://', '').replace('www.', '').split('/')[0]}
+              </button>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Stats row */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="flex items-center gap-8 pt-4 border-t border-border w-full justify-center"
+        >
+          {[
+            { label: 'Clips Created', value: '12,400+' },
+            { label: 'Avg. Processing', value: '~90s' },
+            { label: 'Top Score', value: '99/100' },
+          ].map((stat) => (
+            <div key={stat.label} className="text-center">
+              <div className="text-lg font-bold text-primary">{stat.value}</div>
+              <div className="text-[11px] text-muted">{stat.label}</div>
+            </div>
+          ))}
+        </motion.div>
+      </motion.div>
+    </div>
+  );
+}
