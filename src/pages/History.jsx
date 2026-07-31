@@ -59,9 +59,19 @@ export default function History() {
         const mapped = data.items.map(job => {
           const u = job.url || '';
           let platform = 'Other';
-          if (u.includes('youtube.com') || u.includes('youtu.be')) platform = 'YouTube';
-          else if (u.includes('instagram.com')) platform = 'Instagram';
-          else if (u.includes('tiktok.com')) platform = 'TikTok';
+          let thumbnail = null;
+
+          if (u.includes('youtube.com') || u.includes('youtu.be')) {
+            platform = 'YouTube';
+            const ytMatch = u.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?\n]+)/);
+            if (ytMatch && ytMatch[1]) {
+              thumbnail = `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
+            }
+          } else if (u.includes('instagram.com')) {
+            platform = 'Instagram';
+          } else if (u.includes('tiktok.com')) {
+            platform = 'TikTok';
+          }
 
           return {
             id: job._id,
@@ -72,7 +82,7 @@ export default function History() {
             status: job.status,
             clipCount: job.clipCount || 0,
             topScore: null,
-            thumbnail: null,
+            thumbnail,
           };
         });
         setJobs(mapped);
@@ -147,7 +157,15 @@ export default function History() {
 
         {/* Job list */}
         <div className="space-y-3">
-          {jobs.length === 0 ? (
+          {loading ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex justify-center items-center py-24"
+            >
+              <Loader2 className="w-8 h-8 text-accent animate-spin" />
+            </motion.div>
+          ) : jobs.length === 0 ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
