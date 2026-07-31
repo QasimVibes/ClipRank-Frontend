@@ -51,15 +51,11 @@ export default function StepTracker({ currentStep, completedSteps = [] }) {
   return (
     <div className="w-full max-w-lg mx-auto">
       <div className="relative">
-        {/* Vertical connector line */}
-        <div className="absolute left-5 top-5 bottom-5 w-px bg-border" />
-
-        {/* Progress line fill */}
-
         <div className="flex flex-col gap-1">
           {STEPS.map((step, index) => {
-            const isCompleted = completedSteps.includes(step.id);
-            const isActive = step.id === currentStep;
+            const isDoneStep = step.id === 'done';
+            const isCompleted = completedSteps.includes(step.id) || (isDoneStep && currentStep === 'done');
+            const isActive = step.id === currentStep && !isDoneStep;
             const isPending = !isCompleted && !isActive;
 
             return (

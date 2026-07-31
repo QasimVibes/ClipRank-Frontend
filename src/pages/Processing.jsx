@@ -10,10 +10,10 @@ import useWebSocket from '../hooks/useWebSocket';
 const ESTIMATED_TIMES = {
   queued: '~2 min remaining',
   downloading: '~90 sec remaining',
-  transcribing: '~60 sec remaining',
-  ranking: '~45 sec remaining',
+  transcribing: '~120 sec remaining',
+  ranking: '~60 sec remaining',
   analyzing: '~30 sec remaining',
-  clipping: '~15 sec remaining',
+  clipping: '~60 sec remaining',
   done: 'Complete!',
 };
 
@@ -80,7 +80,7 @@ export default function Processing() {
               <WifiOff className="w-4 h-4 text-muted" />
             )}
             <span className="text-xs text-muted">
-              {isConnected ? 'Live updates connected' : 'Demo mode — simulated updates'}
+              {isConnected ? 'Live updates connected' : 'Connecting or Offline...'}
             </span>
           </div>
           <div className="flex items-center gap-1.5 text-xs text-muted">
@@ -183,10 +183,10 @@ export default function Processing() {
           </button>
           <button
             onClick={() => navigate(`/gallery/${jobId}`)}
-            className="btn-secondary text-sm flex items-center gap-2"
+            className={`${isDone ? 'btn-primary' : 'btn-secondary'} text-sm flex items-center gap-2`}
             id="go-to-gallery"
           >
-            Skip to gallery
+            {isDone ? 'Go to gallery' : 'Skip to gallery'}
             <ArrowRight className="w-4 h-4" />
           </button>
         </motion.div>

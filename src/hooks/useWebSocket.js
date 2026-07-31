@@ -10,15 +10,11 @@ const STEP_IDS = [
   'done',
 ];
 
-// Simulated delay between steps (ms)
-const STEP_DELAYS = [1200, 2500, 3500, 2800, 2200, 3000, 0];
-
 /**
- * useWebSocket — connects to a real WebSocket if WS_URL is configured,
- * otherwise simulates step-by-step progress for demo purposes.
+ * useWebSocket — connects to a real WebSocket to track job processing status.
  *
  * Expected WebSocket message format:
- * { "step": "downloading" | "transcribing" | ... }
+ * { "status": "downloading" | "transcribing" | ... }
  */
 export default function useWebSocket(jobId) {
   const [currentStep, setCurrentStep] = useState('queued');
@@ -26,12 +22,8 @@ export default function useWebSocket(jobId) {
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState(null);
   const wsRef = useRef(null);
-  const mockTimerRef = useRef(null);
 
   const WS_URL = import.meta.env.VITE_WS_URL;
-  const IS_DEV = import.meta.env.VITE_APP_ENV !== 'production';
-
-
   const advanceToStep = useCallback((stepId) => {
     const stepIndex = STEP_IDS.indexOf(stepId);
     if (stepIndex === -1) return;
@@ -40,38 +32,12 @@ export default function useWebSocket(jobId) {
     setCompletedSteps(STEP_IDS.slice(0, stepIndex));
   }, []);
 
-  // Mock simulation
-  const startMockSimulation = useCallback(() => {
-    let stepIndex = 0;
-    setIsConnected(true);
-    setCurrentStep(STEP_IDS[0]);
-    setCompletedSteps([]);
 
-    const runNextStep = () => {
-      if (stepIndex >= STEP_IDS.length) return;
-
-      const delay = STEP_DELAYS[stepIndex];
-      stepIndex++;
-
-      mockTimerRef.current = setTimeout(() => {
-        if (stepIndex < STEP_IDS.length) {
-          advanceToStep(STEP_IDS[stepIndex]);
-          runNextStep();
-        } else {
-          // All done
-          setCurrentStep('done');
-          setCompletedSteps(STEP_IDS.slice(0, -1));
-        }
-      }, delay);
-    };
-
-    runNextStep();
-  }, [advanceToStep]);
 
   // Real WebSocket connection
   const connectWebSocket = useCallback(() => {
     try {
-      const ws = new WebSocket(`${WS_URL}/ws/job/${jobId}`);
+      const ws = new WebSocket(`${WS_URL}/ws/jobs/${jobId}`);
       wsRef.current = ws;
 
       ws.onopen = () => {
@@ -82,8 +48,11 @@ export default function useWebSocket(jobId) {
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          if (data.step) {
-            advanceToStep(data.step);
+          if (data.status === 'failed' || data.status === 'error') {
+            setError(data.error || 'Job failed during processing.');
+            setCurrentStep('failed');
+          } else if (data.status) {
+            advanceToStep(data.status);
           }
         } catch {
           console.warn('[Cliprank WS] Could not parse message:', event.data);
@@ -91,43 +60,31 @@ export default function useWebSocket(jobId) {
       };
 
       ws.onerror = () => {
-        setError('WebSocket connection error. Falling back to demo mode.');
+        setError('WebSocket connection error.');
         setIsConnected(false);
-        startMockSimulation();
       };
 
       ws.onclose = () => {
         setIsConnected(false);
       };
     } catch (err) {
-      setError('Could not connect to WebSocket. Running in demo mode.');
-      startMockSimulation();
+      setError('Could not connect to WebSocket.');
     }
-  }, [WS_URL, jobId, advanceToStep, startMockSimulation]);
+  }, [WS_URL, jobId, advanceToStep]);
 
   useEffect(() => {
-    if (WS_URL && jobId && jobId !== 'demo') {
+    if (WS_URL && jobId) {
       connectWebSocket();
     } else {
-      // Demo mode — simulate steps
-      if (IS_DEV) {
-        console.info(
-          '[Cliprank] Running in demo mode.\n' +
-          'Set VITE_WS_URL in .env.local to connect to a real WebSocket server.'
-        );
-      }
-      startMockSimulation();
+      setError('WebSocket URL or Job ID is missing.');
     }
 
     return () => {
       if (wsRef.current) {
         wsRef.current.close();
       }
-      if (mockTimerRef.current) {
-        clearTimeout(mockTimerRef.current);
-      }
     };
-  }, [jobId, WS_URL, connectWebSocket, startMockSimulation]);
+  }, [jobId, WS_URL, connectWebSocket]);
 
   const isDone = currentStep === 'done' && completedSteps.length === STEP_IDS.length - 1;
 

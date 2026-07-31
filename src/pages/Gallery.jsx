@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -7,64 +7,8 @@ import {
 } from 'lucide-react';
 import ClipCard from '../components/ClipCard';
 import RankBadge from '../components/RankBadge';
+import { getVideoClips, approveClip, rejectClip, getClipDownloadUrl } from '../api';
 
-// Mock clip data — replace with real API data
-const MOCK_CLIPS = [
-  {
-    id: 'clip_1', score: 96, duration: '0:28',
-    title: 'The moment everyone talks about',
-    reason: 'Strong opening hook with clear emotional payoff in 8 seconds. High rewatch potential.',
-    status: 'pending',
-  },
-  {
-    id: 'clip_2', score: 91, duration: '0:34',
-    title: 'Mind-blowing reveal sequence',
-    reason: 'Unexpected twist drives high engagement. Perfect for Reels/TikTok format.',
-    status: 'pending',
-  },
-  {
-    id: 'clip_3', score: 87, duration: '0:22',
-    title: 'Key insight delivered fast',
-    reason: 'Dense value delivery in under 25 seconds. Excellent information density.',
-    status: 'pending',
-  },
-  {
-    id: 'clip_4', score: 83, duration: '0:41',
-    title: 'Controversial take that sparks debate',
-    reason: 'Divisive framing encourages comment engagement and shares.',
-    status: 'pending',
-  },
-  {
-    id: 'clip_5', score: 78, duration: '0:19',
-    title: 'Clean sound bite for quotes',
-    reason: 'Quotable statement ideal for text overlays and screenshot sharing.',
-    status: 'pending',
-  },
-  {
-    id: 'clip_6', score: 74, duration: '0:31',
-    title: 'Funny moment with relatable humor',
-    reason: 'Universally relatable humor drives organic sharing behavior.',
-    status: 'pending',
-  },
-  {
-    id: 'clip_7', score: 65, duration: '0:55',
-    title: 'Detailed explanation worth saving',
-    reason: 'Educational content with save-worthy depth, though slightly long.',
-    status: 'pending',
-  },
-  {
-    id: 'clip_8', score: 58, duration: '1:02',
-    title: 'Background story context',
-    reason: 'Important for narrative but lacks standalone virality potential.',
-    status: 'pending',
-  },
-  {
-    id: 'clip_9', score: 42, duration: '0:48',
-    title: 'Transition bridge segment',
-    reason: 'Weak standalone hook. Better as B-roll than a primary clip.',
-    status: 'pending',
-  },
-];
 
 const SORT_OPTIONS = [
   { id: 'score-desc', label: 'Rank: High → Low' },
@@ -88,23 +32,60 @@ function parseDuration(d) {
 export default function Gallery() {
   const { jobId } = useParams();
   const navigate = useNavigate();
-  const [clips, setClips] = useState(MOCK_CLIPS);
+  const [clips, setClips] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState('score-desc');
   const [filter, setFilter] = useState('all');
   const [viewMode, setViewMode] = useState('grid');
   const [sortOpen, setSortOpen] = useState(false);
 
-  const handleApprove = (id) => {
-    setClips((prev) => prev.map((c) => c.id === id ? { ...c, status: 'approved' } : c));
+  useEffect(() => {
+    async function load() {
+      try {
+        const data = await getVideoClips(jobId);
+        const mapped = data.map(c => {
+          const dur = Math.max(0, Math.round((c.end || 0) - (c.start || 0)));
+          const mins = Math.floor(dur / 60);
+          const secs = (dur % 60).toString().padStart(2, '0');
+          return {
+            id: c._id,
+            score: c.score || 0,
+            duration: `${mins}:${secs}`,
+            title: c.title || `Clip starting at ${Math.round(c.start || 0)}s`,
+            reason: c.reason || 'No reason provided.',
+            status: c.status
+          };
+        });
+        setClips(mapped);
+      } catch (err) {
+        console.error('Failed to load clips', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    if (jobId) load();
+  }, [jobId]);
+
+  const handleApprove = async (id) => {
+    try {
+      await approveClip(id);
+      setClips((prev) => prev.map((c) => c.id === id ? { ...c, status: 'approved' } : c));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const handleReject = (id) => {
-    setClips((prev) => prev.map((c) => c.id === id ? { ...c, status: 'rejected' } : c));
+  const handleReject = async (id) => {
+    try {
+      await rejectClip(id);
+      setClips((prev) => prev.map((c) => c.id === id ? { ...c, status: 'rejected' } : c));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleDownload = (id) => {
-    // In production: trigger real download
-    console.log('Download clip:', id);
+    window.location.href = getClipDownloadUrl(id);
   };
 
   const handleDownloadAll = () => {
@@ -157,7 +138,7 @@ export default function Gallery() {
             <div className="flex items-center gap-2 mb-1">
               <Scissors className="w-4 h-4 text-accent" />
               <span className="text-xs text-muted font-medium">
-                Job #{jobId ? jobId.slice(-8) : 'demo'}
+                Job #{jobId && jobId !== 'demo' ? jobId.slice(-8) : 'unknown'}
               </span>
             </div>
             <h1 className="text-2xl font-bold text-primary">Clip Gallery</h1>
@@ -166,16 +147,6 @@ export default function Gallery() {
             </p>
           </div>
 
-          {approved.length > 0 && (
-            <button
-              onClick={handleDownloadAll}
-              className="btn-primary flex-shrink-0"
-              id="download-all-approved"
-            >
-              <Download className="w-4 h-4" />
-              Download {approved.length} Approved
-            </button>
-          )}
         </motion.div>
 
         {/* Stats bar */}
@@ -312,7 +283,10 @@ export default function Gallery() {
           </motion.div>
         ) : (
           <motion.div
-            layout
+            key="clips-container"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             className={
               viewMode === 'grid'
                 ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4'
@@ -386,8 +360,8 @@ function ListClipRow({ clip, index, onApprove, onReject, onDownload }) {
         </div>
       )}
       {isApproved && (
-        <button onClick={() => onDownload(id)} className="btn-primary text-xs py-1 px-3 flex-shrink-0" id={`list-download-${id}`}>
-          <Download className="w-3.5 h-3.5" /> Download
+        <button onClick={() => onReject(id)} className="btn-secondary text-xs py-1 px-3 flex-shrink-0 hover:text-white" id={`list-undo-approve-${id}`}>
+          <X className="w-3.5 h-3.5" /> Undo
         </button>
       )}
       {isRejected && (
