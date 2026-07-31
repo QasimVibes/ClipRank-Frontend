@@ -83,64 +83,66 @@ export default function Submit() {
       </div>
 
       <motion.div
-        className="relative z-10 w-full max-w-xl flex flex-col items-center text-center gap-8"
+        className="relative z-10 w-full max-w-3xl flex flex-col items-center text-center"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        {/* Badge */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1 }}
-          className="flex items-center gap-2 bg-accent/15 border border-accent/30 text-accent-light px-4 py-1.5 rounded-full text-sm font-medium"
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          AI-Powered Video Clipping
-        </motion.div>
+        {/* Header Area */}
+        <div className="flex flex-col items-center gap-6 mb-12">
+          {/* Badge */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1 }}
+            className="flex items-center gap-2 bg-accent/15 border border-accent/30 text-accent-light px-5 py-2 rounded-full text-sm font-semibold tracking-wide"
+          >
+            <Sparkles className="w-4 h-4" />
+            AI-Powered Video Clipping
+          </motion.div>
 
-        {/* Headline */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="space-y-3"
-        >
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-tight">
-            <span className="gradient-text">Clip the best moments,</span>
-            <br />
-            <span className="accent-gradient-text">automatically.</span>
-          </h1>
-          <p className="text-muted text-lg max-w-sm mx-auto leading-relaxed">
-            Paste a link. Our AI transcribes, ranks, and clips the top moments for you — in seconds.
-          </p>
-        </motion.div>
+          {/* Headline */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="space-y-6"
+          >
+            <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight leading-tight">
+              <span className="gradient-text drop-shadow-sm">Clip the best moments,</span>
+              <br />
+              <span className="accent-gradient-text drop-shadow-sm">automatically.</span>
+            </h1>
+            <p className="text-muted text-lg md:text-xl max-w-xl mx-auto leading-relaxed">
+              Paste a link. Our AI transcribes, ranks, and clips the top moments for you — in seconds.
+            </p>
+          </motion.div>
+        </div>
 
         {/* Input form */}
-        <motion.form
-          onSubmit={handleSubmit}
-          className="w-full space-y-4"
+        <motion.div
+          className="w-full max-w-2xl flex flex-col gap-6"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <div className="relative group">
+          <form onSubmit={handleSubmit} className="w-full relative group">
             {/* Platform indicator */}
             {detectedPlatform && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="absolute left-4 top-1/2 -translate-y-1/2 z-10"
+                className="absolute left-5 top-0 bottom-0 flex items-center justify-center pointer-events-none z-10"
               >
                 <detectedPlatform.icon
-                  className="w-5 h-5"
+                  className="w-6 h-6"
                   style={{ color: detectedPlatform.color }}
                 />
               </motion.div>
             )}
             {!detectedPlatform && (
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
-                <Link2 className="w-5 h-5 text-muted" />
+              <div className="absolute left-5 top-0 bottom-0 flex items-center justify-center pointer-events-none z-10">
+                <Link2 className="w-6 h-6 text-muted" />
               </div>
             )}
 
@@ -154,10 +156,10 @@ export default function Submit() {
               }}
               placeholder="Paste a YouTube, Instagram, or TikTok URL..."
               className={`
-                w-full bg-surface border text-primary placeholder-muted
-                pl-12 pr-40 py-4 rounded-2xl text-sm transition-all duration-200
-                focus:outline-none focus:ring-2 focus:ring-accent/20
-                ${error ? 'border-danger/60 focus:border-danger' : 'border-border focus:border-accent'}
+                w-full bg-surface/90 backdrop-blur-md border text-primary placeholder-muted
+                pl-14 pr-44 py-5 rounded-2xl text-base transition-all duration-300 shadow-xl
+                focus:outline-none focus:ring-2 focus:ring-accent/40 focus:bg-surface
+                ${error ? 'border-danger/60 focus:border-danger' : 'border-border/50 hover:border-accent/40 focus:border-accent'}
               `}
               autoFocus
             />
@@ -167,11 +169,11 @@ export default function Submit() {
               disabled={isLoading}
               id="rank-and-clip-btn"
               className={`
-                absolute right-2 top-1/2 -translate-y-1/2
+                absolute right-2.5 top-1/2 -translate-y-1/2
                 flex items-center gap-2 bg-accent hover:bg-accent-hover text-white
-                font-semibold px-5 py-2.5 rounded-xl text-sm
-                transition-all duration-200
-                disabled:opacity-70 disabled:cursor-not-allowed
+                font-bold px-7 py-3 rounded-xl text-sm shadow-md
+                transition-all duration-300 hover:scale-105 active:scale-95
+                disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100
               `}
             >
               {isLoading ? (
@@ -186,78 +188,52 @@ export default function Submit() {
                 </>
               )}
             </button>
-          </div>
+          </form>
 
           {error && (
             <motion.p
               initial={{ opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-danger text-sm text-left px-1"
+              className="text-danger text-sm text-left px-2"
             >
               {error}
             </motion.p>
           )}
-        </motion.form>
 
-        {/* Platform icons */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="flex flex-col items-center gap-3"
-        >
-          <p className="text-xs text-muted">Supports</p>
-          <div className="flex items-center gap-6">
-            {PLATFORMS.map((platform) => (
-              <div key={platform.name} className="flex flex-col items-center gap-1.5 group cursor-default">
-                <div className="w-10 h-10 rounded-2xl bg-surface border border-border flex items-center justify-center transition-all duration-200 group-hover:border-accent/30 group-hover:bg-card">
-                  <platform.icon className="w-5 h-5" style={{ color: platform.color }} />
-                </div>
-                <span className="text-[10px] text-muted/60 font-medium">{platform.name}</span>
-              </div>
-            ))}
-          </div>
-        </motion.div>
+          {/* Example URLs */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="w-full flex flex-col items-center gap-4 pt-4"
+          >
+            <p className="text-sm text-muted font-medium">Or try an example:</p>
+            <div className="flex flex-wrap gap-3 justify-center">
+              {EXAMPLE_URLS.map((exUrl) => {
+                const isYouTube = exUrl.includes('youtube');
+                const isInstagram = exUrl.includes('instagram');
+                const isTikTok = exUrl.includes('tiktok');
+                
+                let Icon = Link2;
+                if (isYouTube) Icon = YouTubeIcon;
+                else if (isInstagram) Icon = InstagramIcon;
+                else if (isTikTok) Icon = TikTokIcon;
 
-        {/* Example URLs */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="w-full"
-        >
-          <p className="text-xs text-muted mb-2">Try an example:</p>
-          <div className="flex flex-wrap gap-2 justify-center">
-            {EXAMPLE_URLS.map((exUrl) => (
-              <button
-                key={exUrl}
-                onClick={() => handleExampleClick(exUrl)}
-                className="flex items-center gap-1.5 text-xs bg-surface hover:bg-card border border-border hover:border-accent/30 text-muted hover:text-primary px-3 py-1.5 rounded-lg transition-all duration-200"
-              >
-                <ChevronRight className="w-3 h-3" />
-                {exUrl.replace('https://', '').replace('www.', '').split('/')[0]}
-              </button>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Stats row */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="flex items-center gap-8 pt-4 border-t border-border w-full justify-center"
-        >
-          {[
-            { label: 'Clips Created', value: '12,400+' },
-            { label: 'Avg. Processing', value: '~90s' },
-            { label: 'Top Score', value: '99/100' },
-          ].map((stat) => (
-            <div key={stat.label} className="text-center">
-              <div className="text-lg font-bold text-primary">{stat.value}</div>
-              <div className="text-[11px] text-muted">{stat.label}</div>
+                return (
+                  <button
+                    key={exUrl}
+                    onClick={() => handleExampleClick(exUrl)}
+                    className="flex items-center justify-center gap-2 text-sm font-medium bg-surface/50 hover:bg-card border border-border/50 hover:border-accent/50 text-muted hover:text-primary px-5 py-2.5 rounded-xl transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
+                  >
+                    <span className="flex items-center justify-center shrink-0">
+                      <Icon className="w-4 h-4" />
+                    </span>
+                    <span className="truncate">{exUrl.replace('https://', '').replace('www.', '').split('/')[0]}</span>
+                  </button>
+                )
+              })}
             </div>
-          ))}
+          </motion.div>
         </motion.div>
       </motion.div>
     </div>

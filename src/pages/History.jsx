@@ -44,14 +44,6 @@ function StatusBadge({ status }) {
 
 function formatDate(iso) {
   const d = new Date(iso);
-  const now = new Date();
-  const diff = now - d;
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-
-  if (hours < 1) return 'Just now';
-  if (hours < 24) return `${hours}h ago`;
-  if (days === 1) return 'Yesterday';
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
