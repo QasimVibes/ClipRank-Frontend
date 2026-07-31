@@ -182,11 +182,11 @@ export default function Processing() {
             ← Submit another
           </button>
           <button
-            onClick={() => navigate(`/gallery/${jobId}`)}
+            onClick={() => navigate(isDone ? `/gallery/${jobId}` : '/history')}
             className={`${isDone ? 'btn-primary' : 'btn-secondary'} text-sm flex items-center gap-2`}
             id="go-to-gallery"
           >
-            {isDone ? 'Go to gallery' : 'Skip to gallery'}
+            {isDone ? 'Go to gallery' : 'Go to history'}
             <ArrowRight className="w-4 h-4" />
           </button>
         </motion.div>
