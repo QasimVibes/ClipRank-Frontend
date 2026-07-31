@@ -1,12 +1,14 @@
-import { useState } from 'react';
-import { Play, Clock, Download, Check, X, Share2 } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Play, Pause, Clock, Download, Check, X, Share2 } from 'lucide-react';
 import RankBadge from './RankBadge';
 
 
 export default function ClipCard({ clip, onApprove, onReject, onDownload, index = 0 }) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const videoRef = useRef(null);
 
-  const { id, score, reason, duration, title, status } = clip;
+  const { id, score, reason, duration, title, status, public_url } = clip;
   const thumbnail = clip.thumbnail;
 
   const isApproved = status === 'approved';
@@ -47,43 +49,74 @@ export default function ClipCard({ clip, onApprove, onReject, onDownload, index 
         {index + 1}
       </div>
 
-      {/* Thumbnail — 9:16 aspect ratio phone screen */}
+      {/* Thumbnail / Video — 9:16 aspect ratio phone screen */}
       <div
-        className={`relative w-full overflow-hidden ${thumbnail ? 'bg-zinc-900' : 'bg-gradient-to-br from-accent/20 via-background to-black'} cursor-pointer`}
+        className={`relative w-full overflow-hidden ${thumbnail || public_url ? 'bg-zinc-900' : 'bg-gradient-to-br from-accent/20 via-background to-black'} cursor-pointer`}
         style={{ aspectRatio: '9/16' }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onClick={(e) => {
+          if (videoRef.current) {
+            e.stopPropagation();
+            if (isPlaying) {
+              videoRef.current.pause();
+            } else {
+              videoRef.current.play();
+            }
+          }
+        }}
       >
-        {thumbnail && (
+        {public_url ? (
+          <video
+            ref={videoRef}
+            src={public_url}
+            className={`w-full h-full object-cover transition-transform duration-500 ${isHovered && !isPlaying ? 'scale-105' : 'scale-100'}`}
+            loop
+            playsInline
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
+            onEnded={() => setIsPlaying(false)}
+          />
+        ) : thumbnail ? (
           <img
             src={thumbnail}
             alt={title}
             className={`w-full h-full object-cover transition-transform duration-500 ${isHovered ? 'scale-105' : 'scale-100'}`}
             loading="lazy"
           />
-        )}
+        ) : null}
 
         {/* Dark overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+        <div className={`absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent transition-opacity duration-300 ${isPlaying ? 'opacity-0' : 'opacity-100'}`} />
 
         {/* Play button */}
         <div className={`
           absolute inset-0 flex items-center justify-center transition-opacity duration-200
-          ${isHovered ? 'opacity-100' : 'opacity-0'}
+          ${isHovered && !isPlaying ? 'opacity-100' : 'opacity-0'}
         `}>
           <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-xl">
             <Play className="w-6 h-6 text-white fill-white ml-1" />
           </div>
         </div>
 
+        {/* Pause button */}
+        <div className={`
+          absolute inset-0 flex items-center justify-center transition-opacity duration-200
+          ${isHovered && isPlaying ? 'opacity-100' : 'opacity-0'}
+        `}>
+          <div className="w-14 h-14 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/10 shadow-xl">
+            <Pause className="w-6 h-6 text-white fill-white" />
+          </div>
+        </div>
+
         {/* Duration badge */}
-        <div className="absolute bottom-3 left-3 flex items-center gap-1 bg-black/70 backdrop-blur-sm text-white text-xs font-semibold px-2 py-0.5 rounded-md">
+        <div className={`absolute bottom-3 left-3 flex items-center gap-1 bg-black/70 backdrop-blur-sm text-white text-xs font-semibold px-2 py-0.5 rounded-md transition-opacity duration-300 ${isPlaying ? 'opacity-0' : 'opacity-100'}`}>
           <Clock className="w-3 h-3" />
           {duration}
         </div>
 
         {/* Caption bars (decorative — simulating burned-in captions) */}
-        <div className="absolute bottom-10 left-0 right-0 flex flex-col items-center gap-1 px-4">
+        <div className={`absolute bottom-10 left-0 right-0 flex flex-col items-center gap-1 px-4 transition-opacity duration-300 ${isPlaying ? 'opacity-0' : 'opacity-100'}`}>
           <div className="bg-black/80 backdrop-blur-sm text-white text-[10px] font-semibold px-2 py-0.5 rounded text-center leading-tight max-w-full">
             {title}
           </div>

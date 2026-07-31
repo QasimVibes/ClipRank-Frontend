@@ -2,8 +2,8 @@ import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Download, SlidersHorizontal, Check, X, ArrowUpDown, Grid3x3, List,
-  ChevronDown, Scissors, Star
+  Check, X, ArrowUpDown, Grid3x3, List,
+  ChevronDown, Scissors
 } from 'lucide-react';
 import ClipCard from '../components/ClipCard';
 import RankBadge from '../components/RankBadge';
@@ -53,7 +53,8 @@ export default function Gallery() {
             duration: `${mins}:${secs}`,
             title: c.title || `Clip starting at ${Math.round(c.start || 0)}s`,
             reason: c.reason || 'No reason provided.',
-            status: c.status
+            status: c.status,
+            public_url: c.public_url
           };
         });
         setClips(mapped);
@@ -184,8 +185,8 @@ export default function Gallery() {
             {FILTER_OPTIONS.map((opt) => {
               const count = opt.id === 'all' ? clips.length
                 : opt.id === 'approved' ? approved.length
-                : opt.id === 'rejected' ? rejected.length
-                : pending.length;
+                  : opt.id === 'rejected' ? rejected.length
+                    : pending.length;
 
               return (
                 <button
