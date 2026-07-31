@@ -2,31 +2,23 @@ import { useState } from 'react';
 import { Play, Clock, Download, Check, X, Share2 } from 'lucide-react';
 import RankBadge from './RankBadge';
 
-const MOCK_THUMBNAILS = [
-  'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400&q=80',
-  'https://images.unsplash.com/photo-1536240478700-b869ad10a2a0?w=400&q=80',
-  'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=80',
-  'https://images.unsplash.com/photo-1492619375914-88005aa9e8fb?w=400&q=80',
-  'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400&q=80',
-  'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=400&q=80',
-];
 
 export default function ClipCard({ clip, onApprove, onReject, onDownload, index = 0 }) {
   const [isHovered, setIsHovered] = useState(false);
 
   const { id, score, reason, duration, title, status } = clip;
-  const thumbnail = MOCK_THUMBNAILS[index % MOCK_THUMBNAILS.length];
+  const thumbnail = clip.thumbnail;
 
   const isApproved = status === 'approved';
   const isRejected = status === 'rejected';
 
   const cardClass = `
-    relative flex flex-col rounded-2xl overflow-hidden border transition-all duration-300
+    relative flex flex-col rounded-2xl overflow-hidden border transition-all duration-300 group
     ${isApproved
-      ? 'border-success/50 shadow-success-glow bg-card'
+      ? 'border-success/50 bg-gradient-to-br from-success/10 to-card shadow-success-glow ring-1 ring-success/20'
       : isRejected
-        ? 'border-border/50 bg-card/60 opacity-60'
-        : 'border-border bg-card hover:border-accent/40 hover:shadow-card-hover'}
+        ? 'border-border border-dashed bg-card/40 grayscale opacity-80 hover:opacity-100 hover:grayscale-0'
+        : 'border-border/60 bg-gradient-to-b from-card to-card/80 hover:-translate-y-1 hover:border-accent/50 hover:shadow-card-hover'}
   `;
 
   return (
@@ -57,17 +49,19 @@ export default function ClipCard({ clip, onApprove, onReject, onDownload, index 
 
       {/* Thumbnail — 9:16 aspect ratio phone screen */}
       <div
-        className="relative w-full overflow-hidden bg-zinc-900 cursor-pointer"
+        className={`relative w-full overflow-hidden ${thumbnail ? 'bg-zinc-900' : 'bg-gradient-to-br from-accent/20 via-background to-black'} cursor-pointer`}
         style={{ aspectRatio: '9/16' }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <img
-          src={thumbnail}
-          alt={title}
-          className={`w-full h-full object-cover transition-transform duration-500 ${isHovered ? 'scale-105' : 'scale-100'}`}
-          loading="lazy"
-        />
+        {thumbnail && (
+          <img
+            src={thumbnail}
+            alt={title}
+            className={`w-full h-full object-cover transition-transform duration-500 ${isHovered ? 'scale-105' : 'scale-100'}`}
+            loading="lazy"
+          />
+        )}
 
         {/* Dark overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
@@ -133,28 +127,20 @@ export default function ClipCard({ clip, onApprove, onReject, onDownload, index 
           )}
 
           {isApproved && (
-            <>
-              <button
-                onClick={() => onDownload(id)}
-                className="btn-primary flex-1 text-xs py-1.5 justify-center"
-                id={`download-clip-${id}`}
-              >
-                <Download className="w-3.5 h-3.5" />
-                Download
-              </button>
-              <button
-                className="btn-secondary text-xs py-1.5 px-3"
-                id={`share-clip-${id}`}
-              >
-                <Share2 className="w-3.5 h-3.5" />
-              </button>
-            </>
+            <button
+              onClick={() => onReject(id)}
+              className="btn-secondary flex-1 text-xs py-1.5 justify-center transition-colors hover:text-white"
+              id={`undo-approve-${id}`}
+            >
+              <X className="w-3.5 h-3.5" />
+              Undo
+            </button>
           )}
 
           {isRejected && (
             <button
               onClick={() => onApprove(id)}
-              className="btn-secondary flex-1 text-xs py-1.5 justify-center text-muted"
+              className="btn-secondary flex-1 text-xs py-1.5 justify-center text-muted transition-colors hover:text-white"
               id={`restore-clip-${id}`}
             >
               <Check className="w-3.5 h-3.5" />

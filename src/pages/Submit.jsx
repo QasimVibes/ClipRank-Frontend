@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Link2, Sparkles, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { YouTubeIcon, InstagramIcon, TikTokIcon } from '../components/PlatformIcon';
+import { submitVideo } from '../api';
 
 const PLATFORMS = [
   { name: 'YouTube', icon: YouTubeIcon, color: '#FF0000', hint: 'youtube.com' },
@@ -48,12 +49,13 @@ export default function Submit() {
     setError('');
     setIsLoading(true);
 
-    // Simulate a brief "submitting" state then navigate
-    await new Promise((r) => setTimeout(r, 700));
-
-    // In production, POST to /api/jobs and get back a jobId
-    const jobId = `job_${Date.now()}`;
-    navigate(`/processing/${jobId}`);
+    try {
+      const res = await submitVideo(url);
+      navigate(`/processing/${res.video_id}`);
+    } catch (err) {
+      setError(err.message || 'Failed to submit video');
+      setIsLoading(false);
+    }
   };
 
   const handleExampleClick = (exUrl) => {

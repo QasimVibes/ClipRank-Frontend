@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -6,67 +6,10 @@ import {
   CheckCircle2, Loader2, AlertCircle, Circle
 } from 'lucide-react';
 import RankBadge from '../components/RankBadge';
+import { listVideos } from '../api';
 
 const STATUS_STEPS = ['queued', 'downloading', 'transcribing', 'ranking', 'analyzing', 'clipping', 'done'];
 
-// Mock history data
-const MOCK_HISTORY = [
-  {
-    id: 'job_1721900001',
-    url: 'https://youtube.com/watch?v=abc123def',
-    platform: 'YouTube',
-    title: 'How I made $10k in 30 days with AI tools',
-    submittedAt: '2026-07-29T10:22:00Z',
-    status: 'done',
-    clipCount: 9,
-    topScore: 96,
-    thumbnail: 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=300&q=80',
-  },
-  {
-    id: 'job_1721900002',
-    url: 'https://www.instagram.com/reel/XYZ789/',
-    platform: 'Instagram',
-    title: 'Morning routine that changed my life',
-    submittedAt: '2026-07-28T18:05:00Z',
-    status: 'done',
-    clipCount: 6,
-    topScore: 88,
-    thumbnail: 'https://images.unsplash.com/photo-1536240478700-b869ad10a2a0?w=300&q=80',
-  },
-  {
-    id: 'job_1721900003',
-    url: 'https://www.tiktok.com/@creator/video/9876',
-    platform: 'TikTok',
-    title: 'The secret nobody tells you about content creation',
-    submittedAt: '2026-07-28T09:30:00Z',
-    status: 'clipping',
-    clipCount: null,
-    topScore: null,
-    thumbnail: 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=300&q=80',
-  },
-  {
-    id: 'job_1721900004',
-    url: 'https://youtube.com/watch?v=qrs456tuv',
-    platform: 'YouTube',
-    title: 'Deep dive: Next.js 15 performance secrets',
-    submittedAt: '2026-07-27T21:14:00Z',
-    status: 'done',
-    clipCount: 12,
-    topScore: 91,
-    thumbnail: 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=300&q=80',
-  },
-  {
-    id: 'job_1721900005',
-    url: 'https://www.instagram.com/reel/LMN321/',
-    platform: 'Instagram',
-    title: 'Startup pitch that raised $2M in 48 hours',
-    submittedAt: '2026-07-27T14:55:00Z',
-    status: 'done',
-    clipCount: 7,
-    topScore: 84,
-    thumbnail: 'https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?w=300&q=80',
-  },
-];
 
 const PLATFORM_COLORS = {
   YouTube: '#FF0000',
@@ -114,7 +57,41 @@ function formatDate(iso) {
 
 export default function History() {
   const navigate = useNavigate();
-  const [jobs] = useState(MOCK_HISTORY);
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const data = await listVideos(1, 50);
+        const mapped = data.items.map(job => {
+          const u = job.url || '';
+          let platform = 'Other';
+          if (u.includes('youtube.com') || u.includes('youtu.be')) platform = 'YouTube';
+          else if (u.includes('instagram.com')) platform = 'Instagram';
+          else if (u.includes('tiktok.com')) platform = 'TikTok';
+
+          return {
+            id: job._id,
+            url: u,
+            platform,
+            title: job.title || 'Untitled Video',
+            submittedAt: job.created_at,
+            status: job.status,
+            clipCount: job.clipCount || 0,
+            topScore: null,
+            thumbnail: null,
+          };
+        });
+        setJobs(mapped);
+      } catch (err) {
+        console.error('Failed to load history', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
 
   return (
     <div className="min-h-screen px-4 py-8 md:px-6 lg:px-8">

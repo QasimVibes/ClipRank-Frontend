@@ -7,8 +7,6 @@ import { useState } from 'react';
 
 const NAV_LINKS = [
   { to: '/',                icon: Home,        label: 'Submit',     badge: null },
-  { to: '/processing/demo', icon: Cpu,          label: 'Processing', badge: null },
-  { to: '/gallery/demo',    icon: LayoutGrid,   label: 'Gallery',    badge: '9'  },
   { to: '/history',         icon: History,      label: 'History',    badge: null },
 ];
 
