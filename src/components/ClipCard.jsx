@@ -47,27 +47,17 @@ export default function ClipCard({ clip, onApprove, onReject, onDownload, index 
     setIsMuted(!isMuted);
   };
 
-  const handleDownload = async (e) => {
+  const handleDownload = (e) => {
     e.stopPropagation();
     if (onDownload) {
       onDownload(clip);
     } else if (public_url) {
-      try {
-        const response = await fetch(public_url);
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = title ? `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.mp4` : `clip_${id}.mp4`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      } catch (err) {
-        console.error('Failed to download video', err);
-        // Fallback to opening in new tab
-        window.open(public_url, '_blank');
-      }
+      const a = document.createElement('a');
+      a.href = public_url;
+      a.download = title ? `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.mp4` : `clip_${id}.mp4`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     }
   };
 

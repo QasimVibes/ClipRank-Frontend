@@ -85,8 +85,18 @@ export default function Gallery() {
     }
   };
 
-  const handleDownload = (id) => {
-    window.location.href = getClipDownloadUrl(id);
+  const handleDownload = (clip) => {
+    if (clip && clip.public_url) {
+      const a = document.createElement('a');
+      a.href = clip.public_url;
+      a.download = clip.title ? `${clip.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.mp4` : `clip_${clip.id}.mp4`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } else {
+      const id = typeof clip === 'object' ? clip.id : clip;
+      window.location.href = getClipDownloadUrl(id);
+    }
   };
 
   const handleDownloadAll = () => {
