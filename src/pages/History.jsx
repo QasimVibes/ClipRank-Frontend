@@ -47,6 +47,26 @@ function formatDate(iso) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+function detectPlatformAndThumbnail(urlStr) {
+  const u = (urlStr || '').toLowerCase();
+  let platform = null;
+  let thumbnail = null;
+
+  if (u.includes('youtube.com') || u.includes('youtu.be')) {
+    platform = 'YouTube';
+    const ytMatch = (urlStr || '').match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([^&?\/\n]+)/);
+    if (ytMatch && ytMatch[1]) {
+      thumbnail = `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
+    }
+  } else if (u.includes('instagram.com') || u.includes('instagr.am')) {
+    platform = 'Instagram';
+  } else if (u.includes('tiktok.com')) {
+    platform = 'TikTok';
+  }
+
+  return { platform, thumbnail };
+}
+
 export default function History() {
   const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
@@ -58,20 +78,7 @@ export default function History() {
         const data = await listVideos(1, 50);
         const mapped = data.items.map(job => {
           const u = job.url || '';
-          let platform = 'Other';
-          let thumbnail = null;
-
-          if (u.includes('youtube.com') || u.includes('youtu.be')) {
-            platform = 'YouTube';
-            const ytMatch = u.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?\n]+)/);
-            if (ytMatch && ytMatch[1]) {
-              thumbnail = `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
-            }
-          } else if (u.includes('instagram.com')) {
-            platform = 'Instagram';
-          } else if (u.includes('tiktok.com')) {
-            platform = 'TikTok';
-          }
+          const { platform, thumbnail } = detectPlatformAndThumbnail(u);
 
           return {
             id: job._id,
@@ -219,9 +226,11 @@ export default function History() {
                   {/* Info */}
                   <div className="flex-1 min-w-0 space-y-1.5">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`badge border text-[10px] ${PLATFORM_BG[job.platform] || 'bg-card text-muted border-border'}`}>
-                        {job.platform}
-                      </span>
+                      {job.platform && (
+                        <span className={`badge border text-[10px] ${PLATFORM_BG[job.platform] || 'bg-card text-muted border-border'}`}>
+                          {job.platform}
+                        </span>
+                      )}
                       <StatusBadge status={job.status} />
                     </div>
 

@@ -17,12 +17,20 @@ const EXAMPLE_URLS = [
   'https://www.tiktok.com/@user/video/123',
 ];
 
+const ALLOWED_DOMAINS = [
+  'youtube.com',
+  'youtu.be',
+  'instagram.com',
+  'instagr.am',
+  'tiktok.com',
+];
+
 function isValidUrl(url) {
   try {
-    const u = new URL(url);
-    return ['youtube.com', 'youtu.be', 'instagram.com', 'tiktok.com'].some((d) =>
-      u.hostname.includes(d)
-    );
+    const u = new URL(url.trim());
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return false;
+    const hostname = u.hostname.toLowerCase();
+    return ALLOWED_DOMAINS.some((domain) => hostname === domain || hostname.endsWith('.' + domain));
   } catch {
     return false;
   }
@@ -42,7 +50,7 @@ export default function Submit() {
       return;
     }
     if (!isValidUrl(url)) {
-      setError('Please enter a valid YouTube, Instagram, or TikTok URL.');
+      setError('Only YouTube, Instagram, and TikTok video URLs are supported.');
       return;
     }
 
@@ -63,7 +71,13 @@ export default function Submit() {
     setError('');
   };
 
-  const detectedPlatform = PLATFORMS.find((p) => url.includes(p.hint));
+  const detectedPlatform = PLATFORMS.find((p) => {
+    const u = url.toLowerCase();
+    if (p.name === 'YouTube') return u.includes('youtube.com') || u.includes('youtu.be');
+    if (p.name === 'Instagram') return u.includes('instagram.com') || u.includes('instagr.am');
+    if (p.name === 'TikTok') return u.includes('tiktok.com');
+    return false;
+  });
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-16 relative overflow-hidden">
