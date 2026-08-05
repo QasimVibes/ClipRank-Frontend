@@ -1,12 +1,10 @@
 import { useState, useRef } from 'react';
-import { Play, Pause, Clock, Download, Check, X, Volume2, VolumeX } from 'lucide-react';
+import { Clock, Download, Check, X } from 'lucide-react';
 import RankBadge from './RankBadge';
 
 export default function ClipCard({ clip, onApprove, onReject, onDownload, index = 0 }) {
   const [isHovered, setIsHovered] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [isMuted, setIsMuted] = useState(true); // Default to muted for autoplay policies, or false. Let's use false but allow toggle.
   const videoRef = useRef(null);
 
   const { id, score, reason, duration, title, status, public_url } = clip;
@@ -23,29 +21,6 @@ export default function ClipCard({ clip, onApprove, onReject, onDownload, index 
         ? 'border-border border-dashed bg-card/40 grayscale opacity-80 hover:opacity-100 hover:grayscale-0'
         : 'border-border/60 bg-gradient-to-b from-card to-card/80 hover:-translate-y-1 hover:border-accent/50 hover:shadow-card-hover'}
   `;
-
-  const handleTimeUpdate = () => {
-    if (videoRef.current) {
-      const current = videoRef.current.currentTime;
-      const total = videoRef.current.duration;
-      setProgress((current / total) * 100);
-    }
-  };
-
-  const handleProgressBarClick = (e) => {
-    e.stopPropagation();
-    if (videoRef.current) {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const clickedValue = (x / rect.width) * videoRef.current.duration;
-      videoRef.current.currentTime = clickedValue;
-    }
-  };
-
-  const toggleMute = (e) => {
-    e.stopPropagation();
-    setIsMuted(!isMuted);
-  };
 
   const handleDownload = (e) => {
     e.stopPropagation();
@@ -99,29 +74,17 @@ export default function ClipCard({ clip, onApprove, onReject, onDownload, index 
         style={{ aspectRatio: '9/16' }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        onClick={(e) => {
-          if (videoRef.current) {
-            e.stopPropagation();
-            if (isPlaying) {
-              videoRef.current.pause();
-            } else {
-              videoRef.current.play();
-            }
-          }
-        }}
       >
         {public_url ? (
           <video
             ref={videoRef}
             src={public_url}
             className={`w-full h-full object-cover transition-transform duration-500 ${isHovered && !isPlaying ? 'scale-105' : 'scale-100'}`}
-            loop
             playsInline
-            muted={isMuted}
+            controls
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
             onEnded={() => setIsPlaying(false)}
-            onTimeUpdate={handleTimeUpdate}
           />
         ) : thumbnail ? (
           <img
@@ -135,68 +98,12 @@ export default function ClipCard({ clip, onApprove, onReject, onDownload, index 
         {/* Dark overlay */}
         <div className={`absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent transition-opacity duration-300 ${isPlaying ? 'opacity-0' : 'opacity-100'}`} />
 
-        {/* Play button */}
-        <div className={`
-          absolute inset-0 flex items-center justify-center transition-opacity duration-200 pointer-events-none
-          ${isHovered && !isPlaying ? 'opacity-100' : 'opacity-0'}
-        `}>
-          <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-xl">
-            <Play className="w-6 h-6 text-white fill-white ml-1" />
-          </div>
-        </div>
-
-        {/* Pause button */}
-        <div className={`
-          absolute inset-0 flex items-center justify-center transition-opacity duration-200 pointer-events-none
-          ${isHovered && isPlaying ? 'opacity-100' : 'opacity-0'}
-        `}>
-          <div className="w-14 h-14 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/10 shadow-xl">
-            <Pause className="w-6 h-6 text-white fill-white" />
-          </div>
-        </div>
-
         {/* Caption bars (decorative — simulating burned-in captions) */}
-        <div className={`absolute bottom-20 left-0 right-0 flex flex-col items-center gap-1 px-4 transition-opacity duration-300 ${isPlaying || isHovered ? 'opacity-0' : 'opacity-100'}`}>
+        <div className={`absolute top-12 left-0 right-0 flex flex-col items-center gap-1 px-4 transition-opacity duration-300 ${isPlaying || isHovered ? 'opacity-0' : 'opacity-100'}`}>
           <div className="bg-black/80 backdrop-blur-sm text-white text-[10px] font-semibold px-2 py-0.5 rounded text-center leading-tight max-w-full">
             {title}
           </div>
         </div>
-
-        {/* Controls Bar (Progress, Volume, Download) */}
-        {public_url && (
-          <div className={`absolute bottom-0 left-0 right-0 p-3 pt-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col gap-2 transition-opacity duration-300 ${isHovered || isPlaying ? 'opacity-100' : 'opacity-0'}`}>
-            {/* Progress Bar */}
-            <div 
-              className="w-full h-1.5 bg-white/30 rounded-full cursor-pointer overflow-hidden relative"
-              onClick={handleProgressBarClick}
-            >
-              <div 
-                className="absolute top-0 left-0 h-full bg-accent rounded-full transition-all duration-100 ease-linear"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-
-            {/* Bottom Actions */}
-            <div className="flex justify-between items-center px-1">
-              <button 
-                onClick={toggleMute}
-                className="text-white hover:text-accent transition-colors p-1 bg-black/40 rounded-full backdrop-blur-sm"
-                title={isMuted ? "Unmute" : "Mute"}
-              >
-                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-              </button>
-              
-              <button
-                onClick={handleDownload}
-                className="text-white hover:text-accent transition-colors p-1 bg-black/40 rounded-full backdrop-blur-sm flex items-center gap-1 px-2"
-                title="Download Clip"
-              >
-                <Download className="w-3 h-3" />
-                <span className="text-[10px] font-semibold uppercase tracking-wider">Save</span>
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Info section */}
@@ -208,54 +115,64 @@ export default function ClipCard({ clip, onApprove, onReject, onDownload, index 
         </div>
 
         {/* AI reason */}
-        <p className="text-xs text-muted leading-relaxed italic line-clamp-2">
+        <p className="text-xs text-muted leading-relaxed italic line-clamp-2" title={reason}>
           "{reason}"
         </p>
 
         {/* Action buttons */}
-        <div className="flex gap-2 pt-1">
-          {!isApproved && !isRejected && (
-            <>
-              <button
-                onClick={() => onApprove(id)}
-                className="btn-success flex-1 text-xs py-1.5 justify-center"
-                id={`approve-clip-${id}`}
-              >
-                <Check className="w-3.5 h-3.5" />
-                Approve
-              </button>
+        <div className="flex flex-col gap-2 pt-1">
+          <div className="flex gap-2 w-full">
+            {!isApproved && !isRejected && (
+              <>
+                <button
+                  onClick={() => onApprove(id)}
+                  className="btn-success flex-1 text-xs py-1.5 justify-center"
+                  id={`approve-clip-${id}`}
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  Approve
+                </button>
+                <button
+                  onClick={() => onReject(id)}
+                  className="btn-danger flex-1 text-xs py-1.5 justify-center"
+                  id={`reject-clip-${id}`}
+                >
+                  <X className="w-3.5 h-3.5" />
+                  Reject
+                </button>
+              </>
+            )}
+
+            {isApproved && (
               <button
                 onClick={() => onReject(id)}
-                className="btn-danger flex-1 text-xs py-1.5 justify-center"
-                id={`reject-clip-${id}`}
+                className="btn-secondary flex-1 text-xs py-1.5 justify-center transition-colors hover:text-white"
+                id={`undo-approve-${id}`}
               >
                 <X className="w-3.5 h-3.5" />
-                Reject
+                Undo
               </button>
-            </>
-          )}
+            )}
 
-          {isApproved && (
-            <button
-              onClick={() => onReject(id)}
-              className="btn-secondary flex-1 text-xs py-1.5 justify-center transition-colors hover:text-white"
-              id={`undo-approve-${id}`}
-            >
-              <X className="w-3.5 h-3.5" />
-              Undo
-            </button>
-          )}
-
-          {isRejected && (
-            <button
-              onClick={() => onApprove(id)}
-              className="btn-secondary flex-1 text-xs py-1.5 justify-center text-muted transition-colors hover:text-white"
-              id={`restore-clip-${id}`}
-            >
-              <Check className="w-3.5 h-3.5" />
-              Restore
-            </button>
-          )}
+            {isRejected && (
+              <button
+                onClick={() => onApprove(id)}
+                className="btn-secondary flex-1 text-xs py-1.5 justify-center text-muted transition-colors hover:text-white"
+                id={`restore-clip-${id}`}
+              >
+                <Check className="w-3.5 h-3.5" />
+                Restore
+              </button>
+            )}
+          </div>
+          <button
+            onClick={handleDownload}
+            className="btn-secondary w-full text-xs py-1.5 justify-center transition-colors hover:text-white"
+            title="Download Clip"
+          >
+            <Download className="w-3.5 h-3.5 inline-block mr-1" />
+            Download
+          </button>
         </div>
       </div>
     </div>
