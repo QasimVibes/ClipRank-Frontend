@@ -96,10 +96,10 @@ export default function ClipCard({ clip, onApprove, onReject, onDownload, index 
         ) : null}
 
         {/* Dark overlay */}
-        <div className={`absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent transition-opacity duration-300 ${isPlaying ? 'opacity-0' : 'opacity-100'}`} />
+        <div className={`absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent transition-opacity duration-300 pointer-events-none ${isPlaying ? 'opacity-0' : 'opacity-100'}`} />
 
         {/* Caption bars (decorative — simulating burned-in captions) */}
-        <div className={`absolute top-12 left-0 right-0 flex flex-col items-center gap-1 px-4 transition-opacity duration-300 ${isPlaying || isHovered ? 'opacity-0' : 'opacity-100'}`}>
+        <div className={`absolute top-12 left-0 right-0 flex flex-col items-center gap-1 px-4 transition-opacity duration-300 pointer-events-none ${isPlaying || isHovered ? 'opacity-0' : 'opacity-100'}`}>
           <div className="bg-black/80 backdrop-blur-sm text-white text-[10px] font-semibold px-2 py-0.5 rounded text-center leading-tight max-w-full">
             {title}
           </div>
