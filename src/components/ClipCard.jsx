@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Clock, Download, Check, X } from 'lucide-react';
+import { Clock, Check, X, Play } from 'lucide-react';
 import RankBadge from './RankBadge';
 
 export default function ClipCard({ clip, onApprove, onReject, onDownload, index = 0 }) {
@@ -95,8 +95,22 @@ export default function ClipCard({ clip, onApprove, onReject, onDownload, index 
           />
         ) : null}
 
-        {/* Dark overlay */}
-        <div className={`absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent transition-opacity duration-300 pointer-events-none ${isPlaying ? 'opacity-0' : 'opacity-100'}`} />
+        {/* Play button overlay */}
+        {!isPlaying && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+            <div 
+              className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-xl cursor-pointer hover:bg-white/30 transition-colors pointer-events-auto"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (videoRef.current) {
+                  videoRef.current.play();
+                }
+              }}
+            >
+              <Play className="w-6 h-6 text-white fill-white ml-1" />
+            </div>
+          </div>
+        )}
 
         {/* Caption bars (decorative — simulating burned-in captions) */}
         <div className={`absolute top-12 left-0 right-0 flex flex-col items-center gap-1 px-4 transition-opacity duration-300 pointer-events-none ${isPlaying || isHovered ? 'opacity-0' : 'opacity-100'}`}>
@@ -165,14 +179,6 @@ export default function ClipCard({ clip, onApprove, onReject, onDownload, index 
               </button>
             )}
           </div>
-          <button
-            onClick={handleDownload}
-            className="btn-secondary w-full text-xs py-1.5 justify-center transition-colors hover:text-white"
-            title="Download Clip"
-          >
-            <Download className="w-3.5 h-3.5 inline-block mr-1" />
-            Download
-          </button>
         </div>
       </div>
     </div>
