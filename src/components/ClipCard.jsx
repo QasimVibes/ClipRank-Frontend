@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Clock, Check, X, Play } from 'lucide-react';
+import { Clock, Check, X, Play, Loader2 } from 'lucide-react';
 import RankBadge from './RankBadge';
 
 export default function ClipCard({ clip, onApprove, onReject, onDownload, index = 0 }) {
@@ -96,6 +96,13 @@ export default function ClipCard({ clip, onApprove, onReject, onDownload, index 
             loading="lazy"
           />
         ) : null}
+
+        {/* Loading overlay */}
+        {!isLoaded && public_url && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 bg-black/40">
+            <Loader2 className="w-8 h-8 text-white/60 animate-spin" />
+          </div>
+        )}
 
         {/* Play button overlay */}
         {!isPlaying && isLoaded && (
