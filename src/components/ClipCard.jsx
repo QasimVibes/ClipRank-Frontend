@@ -5,6 +5,7 @@ import RankBadge from './RankBadge';
 export default function ClipCard({ clip, onApprove, onReject, onDownload, index = 0 }) {
   const [isHovered, setIsHovered] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   const videoRef = useRef(null);
 
   const { id, score, reason, duration, title, status, public_url } = clip;
@@ -81,10 +82,11 @@ export default function ClipCard({ clip, onApprove, onReject, onDownload, index 
             src={public_url}
             className={`w-full h-full object-cover transition-transform duration-500 ${isHovered && !isPlaying ? 'scale-105' : 'scale-100'}`}
             playsInline
-            controls
+            controls={isLoaded}
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
             onEnded={() => setIsPlaying(false)}
+            onLoadedData={() => setIsLoaded(true)}
           />
         ) : thumbnail ? (
           <img
@@ -96,7 +98,7 @@ export default function ClipCard({ clip, onApprove, onReject, onDownload, index 
         ) : null}
 
         {/* Play button overlay */}
-        {!isPlaying && (
+        {!isPlaying && isLoaded && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
             <div 
               className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-xl cursor-pointer hover:bg-white/30 transition-colors pointer-events-auto"
