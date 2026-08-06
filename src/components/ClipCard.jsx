@@ -15,7 +15,7 @@ export default function ClipCard({ clip, onApprove, onReject, onDownload, index 
   const isRejected = status === 'rejected';
 
   const cardClass = `
-    relative flex flex-col rounded-2xl overflow-hidden border transition-all duration-300 group
+    relative flex flex-col h-full rounded-2xl overflow-hidden border transition-all duration-300 group
     ${isApproved
       ? 'border-success/50 bg-gradient-to-br from-success/10 to-card shadow-success-glow ring-1 ring-success/20'
       : isRejected
@@ -71,7 +71,7 @@ export default function ClipCard({ clip, onApprove, onReject, onDownload, index 
 
       {/* Thumbnail / Video — 9:16 aspect ratio phone screen */}
       <div
-        className={`relative w-full overflow-hidden ${thumbnail || public_url ? 'bg-zinc-900' : 'bg-gradient-to-br from-accent/20 via-background to-black'} cursor-pointer`}
+        className={`relative w-full overflow-hidden shrink-0 ${thumbnail || public_url ? 'bg-zinc-900' : 'bg-gradient-to-br from-accent/20 via-background to-black'} cursor-pointer`}
         style={{ aspectRatio: '9/16' }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -107,7 +107,7 @@ export default function ClipCard({ clip, onApprove, onReject, onDownload, index 
         {/* Play button overlay */}
         {!isPlaying && isLoaded && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-            <div 
+            <div
               className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-xl cursor-pointer hover:bg-white/30 transition-colors pointer-events-auto"
               onClick={(e) => {
                 e.stopPropagation();
@@ -130,7 +130,7 @@ export default function ClipCard({ clip, onApprove, onReject, onDownload, index 
       </div>
 
       {/* Info section */}
-      <div className="p-4 flex flex-col gap-3">
+      <div className="p-4 flex flex-col gap-3 flex-grow">
         {/* Score row */}
         <div className="flex items-center justify-between">
           <RankBadge score={score} size="md" />
@@ -138,12 +138,12 @@ export default function ClipCard({ clip, onApprove, onReject, onDownload, index 
         </div>
 
         {/* AI reason */}
-        <p className="text-xs text-muted leading-relaxed italic line-clamp-2" title={reason}>
+        <p className="text-xs text-muted leading-relaxed italic mb-2" title={reason}>
           "{reason}"
         </p>
 
         {/* Action buttons */}
-        <div className="flex flex-col gap-2 pt-1">
+        <div className="flex flex-col gap-2 mt-auto pt-1">
           <div className="flex gap-2 w-full">
             {!isApproved && !isRejected && (
               <>
