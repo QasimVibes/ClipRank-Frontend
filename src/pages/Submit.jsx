@@ -12,9 +12,9 @@ const PLATFORMS = [
 ];
 
 const EXAMPLE_URLS = [
-  'https://youtube.com/watch?v=dQw4w9WgXcQ',
-  'https://www.instagram.com/reel/ABC123/',
-  'https://www.tiktok.com/@user/video/123',
+  'https://youtu.be/7uRyqg2NT-k?si=Dg0M7jEztNMkRUk4',
+  'https://www.tiktok.com/@toop5_/video/7578945803910270230?is_from_webapp=1&sender_device=pc',
+  'https://www.instagram.com/reel/DS6UuBlEx2o/?utm_source=ig_web_button_share_sheet',
 ];
 
 const ALLOWED_DOMAINS = [
@@ -227,7 +227,7 @@ export default function Submit() {
                 const isYouTube = exUrl.includes('youtube');
                 const isInstagram = exUrl.includes('instagram');
                 const isTikTok = exUrl.includes('tiktok');
-                
+
                 let Icon = Link2;
                 if (isYouTube) Icon = YouTubeIcon;
                 else if (isInstagram) Icon = InstagramIcon;

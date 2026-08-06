@@ -138,7 +138,7 @@ export default function ClipCard({ clip, onApprove, onReject, onDownload, index 
         </div>
 
         {/* AI reason */}
-        <p className="text-xs text-muted leading-relaxed italic mb-2" title={reason}>
+        <p className="text-xs text-muted leading-relaxed italic mb-2">
           "{reason}"
         </p>
 
