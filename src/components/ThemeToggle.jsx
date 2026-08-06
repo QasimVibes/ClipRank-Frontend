@@ -18,23 +18,31 @@ export default function ThemeToggle({ variant = 'default' }) {
         title={label}
         aria-label={label}
         id="theme-toggle-compact"
-        className="theme-toggle"
+        className="flex w-full items-center justify-between rounded-xl border border-border/70 bg-card/70 px-3 py-2 text-sm font-medium text-muted transition-all duration-200 hover:border-accent/30 hover:text-primary"
       >
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.span
-            key={theme}
-            initial={{ scale: 0.5, rotate: -90, opacity: 0 }}
-            animate={{ scale: 1,   rotate: 0,   opacity: 1 }}
-            exit={{   scale: 0.5, rotate:  90,  opacity: 0 }}
-            transition={{ duration: 0.2, ease: 'easeInOut' }}
-            className="flex items-center justify-center"
-          >
-            {isDark
-              ? <Sun  className="w-4 h-4 text-amber-400" />
-              : <Moon className="w-4 h-4 text-slate-500" />
-            }
-          </motion.span>
-        </AnimatePresence>
+        <span className="flex items-center gap-2">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-background/70">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.span
+                key={theme}
+                initial={{ scale: 0.5, rotate: -90, opacity: 0 }}
+                animate={{ scale: 1,   rotate: 0,   opacity: 1 }}
+                exit={{   scale: 0.5, rotate:  90,  opacity: 0 }}
+                transition={{ duration: 0.2, ease: 'easeInOut' }}
+                className="flex items-center justify-center"
+              >
+                {isDark
+                  ? <Sun className="w-4 h-4 text-amber-400" />
+                  : <Moon className="w-4 h-4 text-indigo-400" />
+                }
+              </motion.span>
+            </AnimatePresence>
+          </span>
+          <span>Theme</span>
+        </span>
+        <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-accent/80">
+          {isDark ? 'Light' : 'Dark'}
+        </span>
       </button>
     );
   }

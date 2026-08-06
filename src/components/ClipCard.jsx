@@ -143,13 +143,13 @@ export default function ClipCard({ clip, onApprove, onReject, onDownload, index 
         </p>
 
         {/* Action buttons */}
-        <div className="flex flex-col gap-2 mt-auto pt-1">
-          <div className="flex gap-2 w-full">
+        <div className="mt-auto pt-1">
+          <div className="clip-card-actions">
             {!isApproved && !isRejected && (
               <>
                 <button
                   onClick={() => onApprove(id)}
-                  className="btn-success flex-1 text-xs py-1.5 justify-center"
+                  className="clip-card-action-btn clip-card-action-btn--approve"
                   id={`approve-clip-${id}`}
                 >
                   <Check className="w-3.5 h-3.5" />
@@ -157,7 +157,7 @@ export default function ClipCard({ clip, onApprove, onReject, onDownload, index 
                 </button>
                 <button
                   onClick={() => onReject(id)}
-                  className="btn-danger flex-1 text-xs py-1.5 justify-center"
+                  className="clip-card-action-btn clip-card-action-btn--reject"
                   id={`reject-clip-${id}`}
                 >
                   <X className="w-3.5 h-3.5" />
@@ -169,7 +169,7 @@ export default function ClipCard({ clip, onApprove, onReject, onDownload, index 
             {isApproved && (
               <button
                 onClick={() => onReject(id)}
-                className="btn-secondary flex-1 text-xs py-1.5 justify-center transition-colors hover:text-white"
+                className="clip-card-action-btn clip-card-action-btn--secondary"
                 id={`undo-approve-${id}`}
               >
                 <X className="w-3.5 h-3.5" />
@@ -180,7 +180,7 @@ export default function ClipCard({ clip, onApprove, onReject, onDownload, index 
             {isRejected && (
               <button
                 onClick={() => onApprove(id)}
-                className="btn-secondary flex-1 text-xs py-1.5 justify-center text-muted transition-colors hover:text-white"
+                className="clip-card-action-btn clip-card-action-btn--secondary"
                 id={`restore-clip-${id}`}
               >
                 <Check className="w-3.5 h-3.5" />

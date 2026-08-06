@@ -4,6 +4,7 @@ import {
   Menu, X, Zap, Plus, ArrowUpRight,
 } from 'lucide-react';
 import { useState } from 'react';
+import ThemeToggle from './ThemeToggle';
 
 const NAV_LINKS = [
   { to: '/',                icon: Home,        label: 'Submit',     badge: null },
@@ -27,7 +28,7 @@ function NavItem({ to, icon: Icon, label, badge, onClick }) {
         transition-all duration-200 select-none
         ${isActive
           ? 'bg-accent/15 text-primary border border-accent/25 shadow-[0_0_12px_rgba(124,58,237,0.12)]'
-          : 'text-muted hover:text-primary hover:bg-white/5 border border-transparent'
+          : 'text-muted hover:text-primary hover:bg-card/70 border border-transparent'
         }
       `}
     >
@@ -41,7 +42,7 @@ function NavItem({ to, icon: Icon, label, badge, onClick }) {
         flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-200
         ${isActive
           ? 'bg-accent text-white shadow-[0_2px_8px_rgba(124,58,237,0.4)]'
-          : 'bg-white/5 text-muted group-hover:bg-white/10 group-hover:text-primary'
+          : 'bg-card/70 text-muted group-hover:bg-card/90 group-hover:text-primary'
         }
       `}>
         <Icon className="w-3.5 h-3.5" />
@@ -53,7 +54,7 @@ function NavItem({ to, icon: Icon, label, badge, onClick }) {
       {badge && (
         <span className={`
           text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center
-          ${isActive ? 'bg-accent text-white' : 'bg-white/10 text-muted'}
+          ${isActive ? 'bg-accent text-white' : 'bg-card/80 text-muted'}
         `}>
           {badge}
         </span>
@@ -68,8 +69,8 @@ export default function Layout({ children }) {
   return (
     <div className="min-h-screen bg-background flex">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col w-60 fixed h-full z-30"
-        style={{ background: 'linear-gradient(180deg, #111113 0%, #0e0e10 100%)' }}
+      <aside className="hidden md:flex flex-col w-60 fixed h-full z-30 bg-[radial-gradient(circle_at_top,_rgba(124,58,237,0.16),_transparent_40%)] dark:bg-[radial-gradient(circle_at_top,_rgba(124,58,237,0.16),_transparent_40%)]"
+        style={{ backgroundColor: 'var(--surface)', backgroundImage: 'linear-gradient(180deg, rgba(255,255,255,0.03), transparent)' }}
       >
         {/* Subtle inner border */}
         <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-border/0 via-border to-border/0" />
@@ -79,7 +80,7 @@ export default function Layout({ children }) {
       {/* Mobile backdrop */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-black/70 backdrop-blur-md z-40 md:hidden"
+          className="fixed inset-0 bg-background/70 backdrop-blur-md z-40 md:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -90,7 +91,8 @@ export default function Layout({ children }) {
           fixed left-0 top-0 h-full w-64 z-50 transition-transform duration-300 ease-out md:hidden
         `}
         style={{
-          background: 'linear-gradient(180deg, #111113 0%, #0e0e10 100%)',
+          backgroundColor: 'var(--surface)',
+          backgroundImage: 'linear-gradient(180deg, rgba(255,255,255,0.03), transparent)',
           transform: mobileOpen ? 'translateX(0)' : 'translateX(-100%)',
           borderRight: '1px solid rgba(39,39,42,0.8)',
         }}
@@ -98,7 +100,7 @@ export default function Layout({ children }) {
         <button
           onClick={() => setMobileOpen(false)}
           id="close-sidebar"
-          className="absolute top-3.5 right-3.5 w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-primary hover:bg-white/8 transition-all duration-150"
+          className="absolute top-3.5 right-3.5 w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-primary hover:bg-card/80 transition-all duration-150"
         >
           <X className="w-4 h-4" />
         </button>
@@ -109,8 +111,7 @@ export default function Layout({ children }) {
       <div className="flex-1 md:ml-60 flex flex-col min-h-screen">
 
         {/* Mobile topbar */}
-        <header className="md:hidden flex items-center justify-between px-4 h-14 sticky top-0 z-20 border-b border-border"
-          style={{ background: 'rgba(17,17,19,0.85)', backdropFilter: 'blur(16px)' }}
+        <header className="md:hidden flex items-center justify-between px-4 h-14 sticky top-0 z-20 border-b border-border bg-background/85 backdrop-blur-xl"
         >
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-accent to-purple-500 flex items-center justify-center shadow-[0_2px_8px_rgba(124,58,237,0.4)]">
@@ -124,7 +125,7 @@ export default function Layout({ children }) {
           <button
             onClick={() => setMobileOpen(true)}
             id="open-sidebar"
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-muted hover:text-primary hover:bg-white/8 border border-transparent hover:border-border transition-all duration-150"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-muted hover:text-primary hover:bg-card/80 border border-transparent hover:border-border transition-all duration-150"
           >
             <Menu className="w-4 h-4" />
           </button>
@@ -195,7 +196,12 @@ function SidebarContent({ onNavigate }) {
         {/* Divider */}
         <div className="mx-1 h-px bg-gradient-to-r from-transparent via-border to-transparent mb-3" />
 
-        {/* Status */}
+        {/* Theme toggle */}
+        <div className="px-2 pb-2">
+          <ThemeToggle variant="compact" />
+        </div>
+
+        {/* Status
         <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-success/8 border border-success/15">
           <span className="relative flex items-center justify-center w-2 h-2 flex-shrink-0">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-50" />
@@ -206,7 +212,7 @@ function SidebarContent({ onNavigate }) {
             <p className="text-[10px] text-muted mt-0.5">API · Workers · Storage</p>
           </div>
           <ArrowUpRight className="w-3 h-3 text-muted flex-shrink-0" />
-        </div>
+        </div> */}
 
         {/* Version */}
         <div className="flex items-center justify-between px-3">

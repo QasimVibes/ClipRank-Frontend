@@ -8,12 +8,12 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#0A0A0B',
-        surface: '#111113',
-        card: '#18181B',
-        border: '#27272A',
-        muted: '#71717A',
-        primary: '#FAFAFA',
+        background: 'rgb(var(--background) / <alpha-value>)',
+        surface: 'rgb(var(--surface) / <alpha-value>)',
+        card: 'rgb(var(--card) / <alpha-value>)',
+        border: 'rgb(var(--border) / <alpha-value>)',
+        muted: 'rgb(var(--muted) / <alpha-value>)',
+        primary: 'rgb(var(--primary) / <alpha-value>)',
         accent: {
           DEFAULT: '#7C3AED',
           hover: '#6D28D9',

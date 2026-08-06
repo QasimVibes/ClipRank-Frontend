@@ -136,7 +136,7 @@ export default function Gallery() {
   const avgScore = Math.round(clips.reduce((s, c) => s + c.score, 0) / clips.length);
 
   return (
-    <div className="min-h-screen px-4 py-8 md:px-6 lg:px-8">
+    <div className="min-h-screen px-4 py-8 md:px-6 lg:px-8 overflow-x-hidden">
       <div className="max-w-7xl mx-auto space-y-6">
 
         {/* Page header */}
@@ -349,37 +349,45 @@ function ListClipRow({ clip, index, onApprove, onReject, onDownload }) {
 
   return (
     <div className={`
-      glass-card px-5 py-4 flex items-center gap-4 transition-all duration-200
+      glass-card px-4 py-3 flex flex-wrap items-center gap-x-4 gap-y-2 transition-all duration-200 w-full min-w-0
       ${isApproved ? 'border-success/40 success-glow' : ''}
       ${isRejected ? 'opacity-50' : 'hover:border-accent/30'}
     `}>
-      <span className="text-xs text-muted w-5 text-center flex-shrink-0">#{index + 1}</span>
-      <RankBadge score={score} size="sm" />
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-primary truncate">{title}</p>
-        <p className="text-xs text-muted truncate italic">"{reason}"</p>
-      </div>
-      <span className="text-xs text-muted flex-shrink-0">{duration}</span>
-      {!isApproved && !isRejected && (
-        <div className="flex gap-2 flex-shrink-0">
-          <button onClick={() => onApprove(id)} className="btn-success text-xs py-1 px-3" id={`list-approve-${id}`}>
-            <Check className="w-3.5 h-3.5" /> Approve
-          </button>
-          <button onClick={() => onReject(id)} className="btn-danger text-xs py-1 px-3" id={`list-reject-${id}`}>
-            <X className="w-3.5 h-3.5" /> Reject
-          </button>
+      {/* Row — top line: index + badge + title/reason + duration */}
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        <span className="text-xs text-muted w-5 text-center flex-shrink-0">#{index + 1}</span>
+        <RankBadge score={score} size="sm" />
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-primary truncate">{title}</p>
+          <p className="text-xs text-muted truncate italic">"{reason}"</p>
         </div>
-      )}
-      {isApproved && (
-        <button onClick={() => onReject(id)} className="btn-secondary text-xs py-1 px-3 flex-shrink-0 hover:text-white" id={`list-undo-approve-${id}`}>
-          <X className="w-3.5 h-3.5" /> Undo
-        </button>
-      )}
-      {isRejected && (
-        <button onClick={() => onApprove(id)} className="btn-ghost text-xs py-1 px-3 flex-shrink-0" id={`list-restore-${id}`}>
-          Restore
-        </button>
-      )}
+        <span className="text-xs text-muted flex-shrink-0 hidden sm:inline">{duration}</span>
+      </div>
+
+      {/* Actions — always on same line if space, wraps below on tiny screens */}
+      <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
+        <span className="text-xs text-muted sm:hidden">{duration}</span>
+        {!isApproved && !isRejected && (
+          <>
+            <button onClick={() => onApprove(id)} className="btn-success text-xs py-1 px-3" id={`list-approve-${id}`}>
+              <Check className="w-3.5 h-3.5" /> Approve
+            </button>
+            <button onClick={() => onReject(id)} className="btn-danger text-xs py-1 px-3" id={`list-reject-${id}`}>
+              <X className="w-3.5 h-3.5" /> Reject
+            </button>
+          </>
+        )}
+        {isApproved && (
+          <button onClick={() => onReject(id)} className="btn-secondary text-xs py-1 px-3 hover:text-white" id={`list-undo-approve-${id}`}>
+            <X className="w-3.5 h-3.5" /> Undo
+          </button>
+        )}
+        {isRejected && (
+          <button onClick={() => onApprove(id)} className="btn-ghost text-xs py-1 px-3" id={`list-restore-${id}`}>
+            Restore
+          </button>
+        )}
+      </div>
     </div>
   );
 }
