@@ -77,7 +77,7 @@ export default function History() {
       try {
         const data = await listVideos(1, 50);
         const mapped = data.items.map(job => {
-          const u = job.url || '';
+          const u = job.url || job.source_url || '';
           const { platform, thumbnail } = detectPlatformAndThumbnail(u);
 
           return {

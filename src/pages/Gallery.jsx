@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import ClipCard from '../components/ClipCard';
 import RankBadge from '../components/RankBadge';
-import { getVideoClips, approveClip, rejectClip, getClipDownloadUrl } from '../api';
+import { getVideoClips, approveClip, rejectClip, downloadClip } from '../api';
 
 
 const SORT_OPTIONS = [
@@ -85,7 +85,12 @@ export default function Gallery() {
     }
   };
 
-  const handleDownload = (clip) => {
+  const handleSelectThumbnail = (id, thumbUrl) => {
+    setClips((prev) => prev.map((c) => c.id === id ? { ...c, selected_thumbnail: thumbUrl } : c));
+    // Best-effort: persist the choice server-side if the API supports it later.
+  };
+
+  const handleDownload = async (clip) => {
     if (clip && clip.public_url) {
       const a = document.createElement('a');
       a.href = clip.public_url;
@@ -95,7 +100,14 @@ export default function Gallery() {
       document.body.removeChild(a);
     } else {
       const id = typeof clip === 'object' ? clip.id : clip;
-      window.location.href = getClipDownloadUrl(id);
+      const filename = clip?.title
+        ? `${clip.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.mp4`
+        : `clip_${id}.mp4`;
+      try {
+        await downloadClip(id, filename);
+      } catch (err) {
+        console.error(err);
+      }
     }
   };
 

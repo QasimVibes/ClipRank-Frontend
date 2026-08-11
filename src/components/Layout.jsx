@@ -1,14 +1,16 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Scissors, Home, Cpu, LayoutGrid, History,
-  Menu, X, Zap, Plus, ArrowUpRight,
+  Scissors, Home, History,
+  Menu, X, Zap, Plus, ArrowUpRight, LogOut, LogIn, UserPlus,
 } from 'lucide-react';
 import { useState } from 'react';
 import ThemeToggle from './ThemeToggle';
+import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 
 const NAV_LINKS = [
-  { to: '/',                icon: Home,        label: 'Submit',     badge: null },
-  { to: '/history',         icon: History,      label: 'History',    badge: null },
+  { to: '/', icon: Home, label: 'Submit', badge: null },
+  { to: '/history', icon: History, label: 'History', badge: null },
 ];
 
 function NavItem({ to, icon: Icon, label, badge, onClick }) {
@@ -140,6 +142,13 @@ export default function Layout({ children }) {
 
 function SidebarContent({ onNavigate }) {
   const navigate = useNavigate();
+  const { user, isAuthenticated, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+    onNavigate?.();
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -193,13 +202,51 @@ function SidebarContent({ onNavigate }) {
 
       {/* ── Footer ── */}
       <div className="px-3 pb-4 space-y-2">
-        {/* Divider */}
         <div className="mx-1 h-px bg-gradient-to-r from-transparent via-border to-transparent mb-3" />
+        <ThemeToggle />
+        {isAuthenticated ? (
+          <div className="px-3 py-2.5 rounded-xl bg-white/[0.03] border border-border">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-accent/20 border border-accent/30 flex items-center justify-center flex-shrink-0">
+                <span className="text-xs font-bold text-accent-light">
+                  {(user?.username || user?.email || '?')[0].toUpperCase()}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-primary truncate">{user?.username}</p>
+                <p className="text-[10px] text-muted truncate">{user?.email}</p>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              id="logout-btn"
+              className="mt-2.5 w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-medium text-muted hover:text-danger hover:bg-danger/10 border border-transparent hover:border-danger/20 transition-all duration-150"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              Sign out
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-1.5">
+            <Link
+              to="/login"
+              onClick={onNavigate}
+              className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-muted hover:text-primary hover:bg-white/5 border border-transparent hover:border-border transition-all duration-150"
+            >
+              <LogIn className="w-4 h-4" />
+              Sign in
+            </Link>
+            <Link
+              to="/signup"
+              onClick={onNavigate}
+              className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-accent-light hover:text-accent hover:bg-accent/10 border border-accent/20 transition-all duration-150"
+            >
+              <UserPlus className="w-4 h-4" />
+              Create account
+            </Link>
+          </div>
+        )}
 
-        {/* Theme toggle */}
-        <div className="px-2 pb-2">
-          <ThemeToggle variant="compact" />
-        </div>
 
         {/* Status
         <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-success/8 border border-success/15">

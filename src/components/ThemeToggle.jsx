@@ -26,8 +26,8 @@ export default function ThemeToggle({ variant = 'default' }) {
               <motion.span
                 key={theme}
                 initial={{ scale: 0.5, rotate: -90, opacity: 0 }}
-                animate={{ scale: 1,   rotate: 0,   opacity: 1 }}
-                exit={{   scale: 0.5, rotate:  90,  opacity: 0 }}
+                animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                exit={{ scale: 0.5, rotate: 90, opacity: 0 }}
                 transition={{ duration: 0.2, ease: 'easeInOut' }}
                 className="flex items-center justify-center"
               >
@@ -69,13 +69,13 @@ export default function ThemeToggle({ variant = 'default' }) {
           <motion.span
             key={theme}
             initial={{ scale: 0.4, rotate: -90, opacity: 0 }}
-            animate={{ scale: 1,   rotate: 0,   opacity: 1 }}
-            exit={{   scale: 0.4, rotate:  90,  opacity: 0 }}
+            animate={{ scale: 1, rotate: 0, opacity: 1 }}
+            exit={{ scale: 0.4, rotate: 90, opacity: 0 }}
             transition={{ duration: 0.22, ease: 'easeInOut' }}
             className="absolute inset-0 flex items-center justify-center"
           >
             {isDark
-              ? <Sun  className="w-4 h-4 text-amber-400" />
+              ? <Sun className="w-4 h-4 text-amber-400" />
               : <Moon className="w-4 h-4 text-indigo-400" />
             }
           </motion.span>
