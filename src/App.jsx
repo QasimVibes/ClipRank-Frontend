@@ -6,6 +6,7 @@ import Submit from './pages/Submit';
 import Processing from './pages/Processing';
 import Gallery from './pages/Gallery';
 import History from './pages/History';
+import ConnectYouTube from './pages/ConnectYouTube';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 
@@ -49,6 +50,7 @@ export default function App() {
           <Route path="/processing/:jobId" element={<Processing />} />
           <Route path="/gallery/:jobId" element={<Gallery />} />
           <Route path="/history" element={<History />} />
+          <Route path="/connect/youtube" element={<ConnectYouTube />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

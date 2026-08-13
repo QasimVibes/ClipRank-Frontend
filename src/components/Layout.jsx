@@ -1,15 +1,16 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Scissors, Home, History,
-  Menu, X, Zap, Plus, ArrowUpRight, LogOut, LogIn, UserPlus,
+  Menu, X, Zap, Plus, LogOut, LogIn, UserPlus,
 } from 'lucide-react';
 import { useState } from 'react';
 import ThemeToggle from './ThemeToggle';
-import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { YouTubeIcon } from './PlatformIcon';
 
 const NAV_LINKS = [
   { to: '/', icon: Home, label: 'Submit', badge: null },
+  { to: '/connect/youtube', icon: YouTubeIcon, label: 'YouTube', badge: null },
   { to: '/history', icon: History, label: 'History', badge: null },
 ];
 

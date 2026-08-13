@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+const API_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000');
 const TOKEN_KEY = 'cliprank-token';
 
 let onUnauthorized = null;
@@ -29,10 +29,14 @@ async function parseError(response) {
     const data = await response.json();
     const { detail } = data;
     if (typeof detail === 'string') return detail;
+    if (detail && typeof detail === 'object') {
+      if (typeof detail.message === 'string') return detail.message;
+      if (typeof detail.error === 'string') return detail.error;
+    }
     if (Array.isArray(detail)) {
       return detail.map((d) => d.msg || d.message || String(d)).join(', ');
     }
-    return data.message || 'Request failed';
+    return data.message || data.error || 'Request failed';
   } catch {
     return 'Request failed';
   }
@@ -149,4 +153,106 @@ export async function downloadClip(clipId, filename = 'clip.mp4') {
   a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+// ── Social / YouTube ──
+
+export async function getYouTubeStatus() {
+  const response = await apiFetch('/api/social/youtube/status');
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json();
+}
+
+export async function getYouTubeConnectUrl() {
+  const response = await apiFetch('/api/social/youtube/connect-url');
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json();
+}
+
+export async function disconnectYouTube() {
+  const response = await apiFetch('/api/social/youtube/disconnect', { method: 'DELETE' });
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json();
+}
+
+export async function listSocialUploads(page = 1, limit = 20) {
+  const response = await apiFetch(`/api/social/uploads?page=${page}&limit=${limit}`);
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json();
+}
+
+export async function listUploadJobs(page = 1, limit = 20) {
+  const response = await apiFetch(`/api/social/jobs?page=${page}&limit=${limit}`);
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json();
+}
+
+export async function publishClipToYouTube(clipId, { title, description, privacyStatus = 'private', tags } = {}) {
+  const response = await apiFetch(`/api/social/clips/${clipId}/publish/youtube`, {
+    method: 'POST',
+    body: JSON.stringify({ title, description, privacyStatus, tags }),
+  });
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json();
+}
+
+export async function bulkPublishToYouTube(clips) {
+  const response = await apiFetch('/api/social/clips/publish/youtube/bulk', {
+    method: 'POST',
+    body: JSON.stringify({
+      clips: clips.map((c) => ({
+        clip_id: c.clipId,
+        title: c.title,
+        description: c.description,
+        privacyStatus: c.privacyStatus ?? 'private',
+        tags: c.tags,
+      })),
+    }),
+  });
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json();
+}
+
+export async function getUploadJob(jobId) {
+  const response = await apiFetch(`/api/social/jobs/${jobId}`);
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json();
+}
+
+export async function getBatchUploadJobs(batchId) {
+  const response = await apiFetch(`/api/social/jobs/batch/${batchId}`);
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json();
+}
+
+/** Clips ready to publish (approved/completed, has video, not yet on YouTube) */
+export async function fetchPublishableClips() {
+  const { items: videos } = await listVideos(1, 50);
+  const doneVideos = (videos ?? []).filter((v) => v.status === 'done');
+  const publishable = [];
+
+  for (const video of doneVideos) {
+    const clips = await getVideoClips(video._id);
+    for (const clip of clips) {
+      const postedToYouTube = (clip.posted_to ?? []).some(
+        (entry) => (typeof entry === 'object' ? entry.platform : String(entry)) === 'youtube',
+      );
+      const isReady = (clip.status === 'approved' || clip.status === 'completed') && clip.public_url;
+      if (isReady && !postedToYouTube) {
+        const dur = Math.max(0, Math.round((clip.end || 0) - (clip.start || 0)));
+        publishable.push({
+          id: clip._id,
+          title: clip.title || `Clip at ${Math.round(clip.start || 0)}s`,
+          reason: clip.reason,
+          score: clip.score,
+          duration: `${Math.floor(dur / 60)}:${(dur % 60).toString().padStart(2, '0')}`,
+          public_url: clip.public_url,
+          videoId: video._id,
+          videoTitle: video.title || 'Untitled',
+        });
+      }
+    }
+  }
+
+  return publishable;
 }

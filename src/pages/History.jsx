@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Clock, Scissors, ExternalLink, Plus, ChevronRight,
-  CheckCircle2, Loader2, AlertCircle, Circle
+  CheckCircle2, Loader2, AlertCircle, Circle,
+  Download, FileText, BarChart2, Zap, RefreshCw
 } from 'lucide-react';
 import RankBadge from '../components/RankBadge';
 import { listVideos } from '../api';
@@ -25,18 +26,29 @@ const PLATFORM_BG = {
 
 function StatusBadge({ status }) {
   const styles = {
-    done: { color: 'bg-success/15 text-success border-success/30', icon: CheckCircle2, label: 'Done' },
-    clipping: { color: 'bg-accent/15 text-accent-light border-accent/30', icon: Loader2, label: 'Clipping', spin: true },
-    transcribing: { color: 'bg-warning/15 text-warning border-warning/30', icon: Loader2, label: 'Transcribing', spin: true },
-    queued: { color: 'bg-zinc-700/30 text-muted border-border', icon: Circle, label: 'Queued' },
-    error: { color: 'bg-danger/15 text-danger border-danger/30', icon: AlertCircle, label: 'Error' },
+    done:        { color: 'bg-success/15 text-success border-success/30',           icon: CheckCircle2, label: 'Done' },
+    queued:      { color: 'bg-zinc-700/30 text-muted border-border',                icon: Circle,      label: 'Queued' },
+    downloading: { color: 'bg-blue-500/15 text-blue-400 border-blue-500/30',        icon: Download,    label: 'Downloading', spin: false },
+    transcribing:{ color: 'bg-warning/15 text-warning border-warning/30',           icon: FileText,    label: 'Transcribing', spin: false },
+    ranking:     { color: 'bg-purple-500/15 text-purple-400 border-purple-500/30',  icon: BarChart2,   label: 'Ranking', spin: false },
+    analyzing:   { color: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30',        icon: Zap,         label: 'Analyzing', spin: false },
+    clipping:    { color: 'bg-accent/15 text-accent-light border-accent/30',        icon: Scissors,    label: 'Clipping', spin: false },
+    error:       { color: 'bg-danger/15 text-danger border-danger/30',              icon: AlertCircle, label: 'Error' },
+    failed:      { color: 'bg-danger/15 text-danger border-danger/30',              icon: AlertCircle, label: 'Failed' },
   };
   const cfg = styles[status] || styles.queued;
   const Icon = cfg.icon;
+  // Active processing statuses get a pulsing ring instead of a spinning icon
+  const isProcessing = !['done', 'queued', 'error', 'failed'].includes(status);
 
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${cfg.color}`}>
-      <Icon className={`w-3 h-3 ${cfg.spin ? 'animate-spin' : ''}`} />
+      <span className={`relative flex items-center justify-center`}>
+        {isProcessing && (
+          <span className="absolute inline-flex w-full h-full rounded-full opacity-60 animate-ping" style={{ background: 'currentColor' }} />
+        )}
+        <Icon className={`w-3 h-3 relative`} />
+      </span>
       {cfg.label}
     </span>
   );
@@ -67,40 +79,69 @@ function detectPlatformAndThumbnail(urlStr) {
   return { platform, thumbnail };
 }
 
+const TERMINAL_STATUSES = new Set(['done', 'error', 'failed']);
+const POLL_INTERVAL_MS = 5000;
+
 export default function History() {
   const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const pollTimerRef = useRef(null);
+
+  const mapJobs = useCallback((items) =>
+    items.map(job => {
+      const u = job.url || job.source_url || '';
+      const { platform, thumbnail } = detectPlatformAndThumbnail(u);
+      return {
+        id: job._id,
+        url: u,
+        platform,
+        title: job.title || 'Untitled Video',
+        submittedAt: job.created_at,
+        status: job.status,
+        clipCount: job.clipCount || 0,
+        topScore: null,
+        thumbnail,
+      };
+    }),
+  []);
+
+  const fetchJobs = useCallback(async (isBackground = false) => {
+    try {
+      if (!isBackground) setLoading(true);
+      else setIsRefreshing(true);
+
+      const data = await listVideos(1, 50);
+      const mapped = mapJobs(data.items);
+      setJobs(mapped);
+
+      // If any job is still in progress, schedule a poll
+      const hasActiveJobs = mapped.some(j => !TERMINAL_STATUSES.has(j.status));
+      if (hasActiveJobs) {
+        if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
+        pollTimerRef.current = setTimeout(() => fetchJobs(true), POLL_INTERVAL_MS);
+      } else {
+        // All done — stop polling
+        if (pollTimerRef.current) {
+          clearTimeout(pollTimerRef.current);
+          pollTimerRef.current = null;
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load history', err);
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
+    }
+  }, [mapJobs]);
 
   useEffect(() => {
-    async function load() {
-      try {
-        const data = await listVideos(1, 50);
-        const mapped = data.items.map(job => {
-          const u = job.url || job.source_url || '';
-          const { platform, thumbnail } = detectPlatformAndThumbnail(u);
-
-          return {
-            id: job._id,
-            url: u,
-            platform,
-            title: job.title || 'Untitled Video',
-            submittedAt: job.created_at,
-            status: job.status,
-            clipCount: job.clipCount || 0,
-            topScore: null,
-            thumbnail,
-          };
-        });
-        setJobs(mapped);
-      } catch (err) {
-        console.error('Failed to load history', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
-  }, []);
+    fetchJobs();
+    return () => {
+      if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
+    };
+  }, [fetchJobs]);
 
   return (
     <div className="min-h-screen px-4 py-8 md:px-6 lg:px-8">
@@ -118,14 +159,22 @@ export default function History() {
               All your past video submissions and generated clips.
             </p>
           </div>
-          <button
-            onClick={() => navigate('/')}
-            className="btn-primary"
-            id="new-submission-btn"
-          >
-            <Plus className="w-4 h-4" />
-            New Video
-          </button>
+          <div className="flex items-center gap-2">
+            {isRefreshing && (
+              <span className="flex items-center gap-1.5 text-xs text-muted">
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                Updating...
+              </span>
+            )}
+            <button
+              onClick={() => navigate('/')}
+              className="btn-primary"
+              id="new-submission-btn"
+            >
+              <Plus className="w-4 h-4" />
+              New Video
+            </button>
+          </div>
         </motion.div>
 
         {/* Summary row */}
