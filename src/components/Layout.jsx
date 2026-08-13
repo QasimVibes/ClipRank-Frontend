@@ -9,7 +9,7 @@ import { useAuth } from '../context/AuthContext';
 import { YouTubeIcon } from './PlatformIcon';
 
 const NAV_LINKS = [
-  { to: '/', icon: Home, label: 'Submit', badge: null },
+  { to: '/dashboard', icon: Home, label: 'Submit', badge: null },
   { to: '/connect/youtube', icon: YouTubeIcon, label: 'YouTube', badge: null },
   { to: '/history', icon: History, label: 'History', badge: null },
 ];
@@ -181,7 +181,7 @@ function SidebarContent({ onNavigate }) {
       {/* ── New Clip CTA ── */}
       <div className="px-3 py-3">
         <button
-          onClick={() => { navigate('/'); onNavigate?.(); }}
+          onClick={() => { navigate('/dashboard'); onNavigate?.(); }}
           id="new-clip-cta"
           className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-200 hover:shadow-[0_4px_16px_rgba(124,58,237,0.4)] active:scale-[0.98]"
           style={{ background: 'linear-gradient(135deg, #7C3AED 0%, #9333ea 100%)', boxShadow: '0 2px 10px rgba(124,58,237,0.3)' }}

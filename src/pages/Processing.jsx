@@ -175,7 +175,7 @@ export default function Processing() {
           className="flex items-center justify-between"
         >
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/dashboard')}
             className="btn-ghost text-sm"
             id="back-to-submit"
           >

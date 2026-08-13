@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { UserPlus, Mail, Lock, User, Scissors, ArrowRight } from 'lucide-react';
+import { UserPlus, Mail, Lock, User, Scissors, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Signup() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { signup } = useAuth();
 
   const [username, setUsername] = useState('');
@@ -13,6 +14,7 @@ export default function Signup() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const from = location.state?.from?.pathname || '/dashboard';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,7 +23,7 @@ export default function Signup() {
 
     try {
       await signup(username, email, password);
-      navigate('/', { replace: true });
+      navigate(from, { replace: true });
     } catch (err) {
       setError(err.message || 'Signup failed');
       setIsLoading(false);
@@ -42,12 +44,14 @@ export default function Signup() {
         className="relative w-full max-w-md"
       >
         <div className="text-center mb-8">
-          <div
-            className="inline-flex w-14 h-14 rounded-2xl items-center justify-center mb-4"
-            style={{ background: 'linear-gradient(135deg, #7C3AED, #a855f7)', boxShadow: '0 4px 20px rgba(124,58,237,0.4)' }}
-          >
-            <Scissors className="w-7 h-7 text-white" />
-          </div>
+          <Link to="/">
+            <div
+              className="inline-flex w-14 h-14 rounded-2xl items-center justify-center mb-4"
+              style={{ background: 'linear-gradient(135deg, #7C3AED, #a855f7)', boxShadow: '0 4px 20px rgba(124,58,237,0.4)' }}
+            >
+              <Scissors className="w-7 h-7 text-white" />
+            </div>
+          </Link>
           <h1 className="text-2xl font-bold text-primary">Create your account</h1>
           <p className="text-muted text-sm mt-1">Start turning videos into viral clips</p>
         </div>

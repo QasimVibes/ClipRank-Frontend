@@ -11,6 +11,35 @@ export default function ThemeToggle({ variant = 'default' }) {
 
   const label = isDark ? 'Switch to light mode' : 'Switch to dark mode';
 
+  if (variant === 'icon-only') {
+    return (
+      <button
+        onClick={toggleTheme}
+        title={label}
+        aria-label={label}
+        className="p-2 rounded-full text-muted hover:text-primary transition-colors hover:bg-surface"
+      >
+        <span className="relative w-5 h-5 flex flex-shrink-0">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.span
+              key={theme}
+              initial={{ scale: 0.5, rotate: -90, opacity: 0 }}
+              animate={{ scale: 1, rotate: 0, opacity: 1 }}
+              exit={{ scale: 0.5, rotate: 90, opacity: 0 }}
+              transition={{ duration: 0.2, ease: 'easeInOut' }}
+              className="absolute inset-0 flex items-center justify-center"
+            >
+              {isDark
+                ? <Sun className="w-5 h-5 text-amber-400" />
+                : <Moon className="w-5 h-5 text-indigo-400" />
+              }
+            </motion.span>
+          </AnimatePresence>
+        </span>
+      </button>
+    );
+  }
+
   if (variant === 'compact') {
     return (
       <button

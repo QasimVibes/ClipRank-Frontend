@@ -167,7 +167,7 @@ export default function History() {
               </span>
             )}
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/dashboard')}
               className="btn-primary"
               id="new-submission-btn"
             >
@@ -230,7 +230,7 @@ export default function History() {
               <div className="text-5xl mb-4">🎬</div>
               <h3 className="text-lg font-semibold text-primary mb-2">No submissions yet</h3>
               <p className="text-muted text-sm mb-6">Submit your first video to get started.</p>
-              <button onClick={() => navigate('/')} className="btn-primary" id="first-submit-btn">
+              <button onClick={() => navigate('/dashboard')} className="btn-primary" id="first-submit-btn">
                 Submit a Video
                 <ChevronRight className="w-4 h-4" />
               </button>

@@ -9,6 +9,8 @@ import History from './pages/History';
 import ConnectYouTube from './pages/ConnectYouTube';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import Home from './pages/Home';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 
 function AppLayout() {
   return (
@@ -39,6 +41,9 @@ export default function App() {
           }
         />
 
+        <Route path="/" element={<Home />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+
         <Route
           element={
             <ProtectedRoute>
@@ -46,7 +51,7 @@ export default function App() {
             </ProtectedRoute>
           }
         >
-          <Route path="/" element={<Submit />} />
+          <Route path="/dashboard" element={<Submit />} />
           <Route path="/processing/:jobId" element={<Processing />} />
           <Route path="/gallery/:jobId" element={<Gallery />} />
           <Route path="/history" element={<History />} />

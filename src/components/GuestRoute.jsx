@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import FullPageLoader from './FullPageLoader';
 import { useAuth } from '../context/AuthContext';
 
 export default function GuestRoute({ children }) {
@@ -7,14 +7,12 @@ export default function GuestRoute({ children }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 text-accent animate-spin" />
-      </div>
+      <FullPageLoader />
     );
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;

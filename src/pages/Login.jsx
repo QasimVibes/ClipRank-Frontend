@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LogIn, Mail, Lock, Scissors, ArrowRight } from 'lucide-react';
+import { LogIn, Mail, Lock, Scissors, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
@@ -14,7 +14,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const from = location.state?.from?.pathname || '/';
+  const from = location.state?.from?.pathname || '/dashboard';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,7 +25,7 @@ export default function Login() {
       await login(email, password);
       navigate(from, { replace: true });
     } catch (err) {
-      setError(err.message || 'Login failed');
+      setError(err.message || 'Login failed'); ``
       setIsLoading(false);
     }
   };
@@ -44,12 +44,14 @@ export default function Login() {
         className="relative w-full max-w-md"
       >
         <div className="text-center mb-8">
-          <div
-            className="inline-flex w-14 h-14 rounded-2xl items-center justify-center mb-4"
-            style={{ background: 'linear-gradient(135deg, #7C3AED, #a855f7)', boxShadow: '0 4px 20px rgba(124,58,237,0.4)' }}
-          >
-            <Scissors className="w-7 h-7 text-white" />
-          </div>
+          <Link to="/">
+            <div
+              className="inline-flex w-14 h-14 rounded-2xl items-center justify-center mb-4"
+              style={{ background: 'linear-gradient(135deg, #7C3AED, #a855f7)', boxShadow: '0 4px 20px rgba(124,58,237,0.4)' }}
+            >
+              <Scissors className="w-7 h-7 text-white" />
+            </div>
+          </Link>
           <h1 className="text-2xl font-bold text-primary">Welcome back</h1>
           <p className="text-muted text-sm mt-1">Sign in to your ClipRank account</p>
         </div>
