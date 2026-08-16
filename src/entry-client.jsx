@@ -32,3 +32,18 @@ if (isSSRPage && container.innerHTML.trim() !== '') {
   // Plain client-side mount for authenticated/protected routes.
   createRoot(container).render(app)
 }
+
+// Smoothly fade out the simple blur overlay to prevent FOUC elegantly
+const overlay = document.getElementById('cliprank-overlay')
+if (overlay) {
+  // Give React a brief moment to render the real DOM behind the overlay
+  setTimeout(() => {
+    overlay.style.opacity = '0'
+    overlay.style.visibility = 'hidden'
+    
+    // Remove from DOM completely after fade out finishes
+    setTimeout(() => {
+      overlay.remove()
+    }, 650)
+  }, 100)
+}

@@ -85,7 +85,7 @@ async function createServer() {
 }
 
 createServer().then((app) => {
-  const port = process.env.PORT || 3000
+  const port = process.env.PORT || 5173
   app.listen(port, () => {
     console.log(`ClipRank SSR server running at http://localhost:${port}`)
     console.log(`SSR-enabled routes: ${SSR_ROUTES.join(', ')}`)
