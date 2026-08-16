@@ -6,20 +6,21 @@ import {
 import { useState } from 'react';
 import ThemeToggle from './ThemeToggle';
 import { useAuth } from '../context/AuthContext';
-import { YouTubeIcon } from './PlatformIcon';
+import { YouTubeIcon, FacebookIcon, InstagramIcon } from './PlatformIcon';
 
 const NAV_LINKS = [
   { to: '/dashboard', icon: Home, label: 'Submit', badge: null },
   { to: '/connect/youtube', icon: YouTubeIcon, label: 'YouTube', badge: null },
+  { to: '/connect/facebook', icon: FacebookIcon, label: 'Facebook', badge: null },
+  { to: '/connect/instagram', icon: InstagramIcon, label: 'Instagram', badge: null },
   { to: '/history', icon: History, label: 'History', badge: null },
 ];
 
 function NavItem({ to, icon: Icon, label, badge, onClick }) {
   const location = useLocation();
-  const segment = to.split('/')[1];
   const isActive =
     location.pathname === to ||
-    (segment && segment !== '' && location.pathname.startsWith('/' + segment));
+    (to !== '/' && location.pathname.startsWith(to + '/'));
 
   return (
     <Link
@@ -248,19 +249,6 @@ function SidebarContent({ onNavigate }) {
           </div>
         )}
 
-
-        {/* Status
-        <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-success/8 border border-success/15">
-          <span className="relative flex items-center justify-center w-2 h-2 flex-shrink-0">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-50" />
-            <span className="relative w-2 h-2 rounded-full bg-success" />
-          </span>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-primary leading-none">All systems live</p>
-            <p className="text-[10px] text-muted mt-0.5">API · Workers · Storage</p>
-          </div>
-          <ArrowUpRight className="w-3 h-3 text-muted flex-shrink-0" />
-        </div> */}
 
         {/* Version */}
         <div className="flex items-center justify-between px-3">
