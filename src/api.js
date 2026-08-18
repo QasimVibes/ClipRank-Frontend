@@ -175,16 +175,26 @@ export async function disconnectYouTube() {
   return response.json();
 }
 
-export async function listSocialUploads(page = 1, limit = 20) {
-  const response = await apiFetch(`/api/social/uploads?page=${page}&limit=${limit}`);
+export async function listSocialUploads(platform = null, page = 1, limit = 20) {
+  const platformParam = platform ? `&platform=${platform}` : '';
+  const response = await apiFetch(`/api/social/uploads?page=${page}&limit=${limit}${platformParam}`);
   if (!response.ok) throw new Error(await parseError(response));
-  return response.json();
+  const data = await response.json();
+  if (platform && data.items) {
+      data.items = data.items.filter(item => !item.platform || item.platform === platform);
+  }
+  return data;
 }
 
-export async function listUploadJobs(page = 1, limit = 20) {
-  const response = await apiFetch(`/api/social/jobs?page=${page}&limit=${limit}`);
+export async function listUploadJobs(platform = null, page = 1, limit = 20) {
+  const platformParam = platform ? `&platform=${platform}` : '';
+  const response = await apiFetch(`/api/social/jobs?page=${page}&limit=${limit}${platformParam}`);
   if (!response.ok) throw new Error(await parseError(response));
-  return response.json();
+  const data = await response.json();
+  if (platform && data.items) {
+      data.items = data.items.filter(item => !item.platform || item.platform === platform);
+  }
+  return data;
 }
 
 export async function publishClipToYouTube(clipId, { title, description, privacyStatus = 'private', tags } = {}) {

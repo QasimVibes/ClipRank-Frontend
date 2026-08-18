@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -70,7 +70,7 @@ export default function ConnectYouTube() {
   const [clipsLoading, setClipsLoading] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
-  const [publishing, setPublishing] = useState(false);
+  const [publishingId, setPublishingId] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const [message, setMessage] = useState('');
@@ -87,14 +87,20 @@ export default function ConnectYouTube() {
   const loadCoreData = useCallback(async () => {
     setError('');
     try {
-      const [statusData, uploadsData, jobsData] = await Promise.all([
-        getYouTubeStatus(),
-        listSocialUploads().catch(() => ({ items: [] })),
-        listUploadJobs().catch(() => ({ items: [] })),
-      ]);
+      const statusData = await getYouTubeStatus();
       setStatus(statusData);
-      setUploads(uploadsData.items ?? []);
-      setJobs(jobsData.items ?? []);
+      
+      if (statusData?.connected) {
+        const [uploadsData, jobsData] = await Promise.all([
+          listSocialUploads('youtube').catch(() => ({ items: [] })),
+          listUploadJobs('youtube').catch(() => ({ items: [] })),
+        ]);
+        setUploads(uploadsData.items ?? []);
+        setJobs(jobsData.items ?? []);
+      } else {
+        setUploads([]);
+        setJobs([]);
+      }
       return statusData?.connected;
     } catch (err) {
       setError(err.message || 'Failed to load YouTube data');
@@ -121,6 +127,8 @@ export default function ConnectYouTube() {
     const isConn = await loadCoreData();
     if (isConn) {
       await loadPublishableClips();
+    } else {
+      setPublishableClips([]);
     }
     
     setLoading(false);
@@ -147,13 +155,25 @@ export default function ConnectYouTube() {
   // Poll jobs while pending
   useEffect(() => {
     const hasPending = jobs.some((j) => j.status === 'queued' || j.status === 'processing');
-    if (activeTab !== 'jobs' || !hasPending) return;
+    if (!hasPending) return;
 
     const interval = setInterval(() => {
-      listUploadJobs().then((data) => setJobs(data.items ?? [])).catch(() => { });
+      listUploadJobs('youtube').then((data) => setJobs(data.items ?? [])).catch(() => { });
     }, 5000);
     return () => clearInterval(interval);
-  }, [activeTab, jobs]);
+  }, [jobs]);
+
+  const prevPending = useRef(0);
+  useEffect(() => {
+    const currentPending = jobs.filter((j) => j.status === 'queued' || j.status === 'processing').length;
+    if (currentPending < prevPending.current) {
+      setTimeout(() => {
+        listSocialUploads('youtube').then((data) => setUploads(data.items ?? [])).catch(() => {});
+        fetchPublishableClips('youtube').then((data) => setPublishableClips(data)).catch(() => {});
+      }, 2500);
+    }
+    prevPending.current = currentPending;
+  }, [jobs]);
 
   const handleConnect = async () => {
     setConnecting(true);
@@ -206,13 +226,13 @@ export default function ConnectYouTube() {
       setError('Connect YouTube first');
       return;
     }
-    setPublishing(true);
+    setPublishingId(clip.id);
     setError('');
     setMessage('');
     try {
       const result = await publishClipToYouTube(clip.id, {
         title: clip.title,
-        description: publishDescription || `Uploaded via ClipRank — ${clip.reason || ''}`.trim(),
+        description: publishDescription || "",
         privacyStatus,
       });
       setMessage(`Upload queued! Job ID: ${result.jobId}`);
@@ -222,7 +242,7 @@ export default function ConnectYouTube() {
     } catch (err) {
       setError(err.message || 'Publish failed');
     } finally {
-      setPublishing(false);
+      setPublishingId(null);
     }
   };
 
@@ -236,7 +256,7 @@ export default function ConnectYouTube() {
       setError('Select at least one clip');
       return;
     }
-    setPublishing(true);
+    setPublishingId('bulk');
     setError('');
     setMessage('');
     try {
@@ -244,7 +264,7 @@ export default function ConnectYouTube() {
         selected.map((clip) => ({
           clipId: clip.id,
           title: clip.title,
-          description: publishDescription || `Uploaded via ClipRank`,
+          description: publishDescription || "",
           privacyStatus,
         })),
       );
@@ -256,7 +276,7 @@ export default function ConnectYouTube() {
     } catch (err) {
       setError(err.message || 'Bulk publish failed');
     } finally {
-      setPublishing(false);
+      setPublishingId(null);
     }
   };
 
@@ -528,7 +548,7 @@ export default function ConnectYouTube() {
                             type="text"
                             value={publishDescription}
                             onChange={(e) => setPublishDescription(e.target.value)}
-                            placeholder="Uploaded via ClipRank"
+                            placeholder=""
                             className="input-field w-full"
                           />
                         </div>
@@ -536,10 +556,10 @@ export default function ConnectYouTube() {
                       {selectedClipIds.size > 0 && (
                         <button
                           onClick={handleBulkPublish}
-                          disabled={publishing}
+                          disabled={publishingId !== null}
                           className="btn-primary w-full sm:w-auto justify-center"
                         >
-                          {publishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                          {publishingId === 'bulk' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                           Publish {selectedClipIds.size} selected to YouTube
                         </button>
                       )}
@@ -602,10 +622,10 @@ export default function ConnectYouTube() {
 
                               <button
                                 onClick={() => handlePublishSingle(clip)}
-                                disabled={publishing}
+                                disabled={publishingId !== null}
                                 className="btn-primary text-xs py-1.5 px-3 flex-shrink-0"
                               >
-                                {publishing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                                {publishingId === clip.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
                                 Publish
                               </button>
                             </li>

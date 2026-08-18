@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -71,13 +71,12 @@ export default function ConnectFacebook() {
     const [clipsLoading, setClipsLoading] = useState(false);
     const [connecting, setConnecting] = useState(false);
     const [disconnecting, setDisconnecting] = useState(false);
-    const [publishing, setPublishing] = useState(false);
+    const [publishingId, setPublishingId] = useState(null);
     const [refreshing, setRefreshing] = useState(false);
 
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
 
-    const [privacyStatus, setPrivacyStatus] = useState('private');
     const [publishDescription, setPublishDescription] = useState('');
     const [pages, setPages] = useState([]);
     const [selectedPageId, setSelectedPageId] = useState('');
@@ -90,19 +89,25 @@ export default function ConnectFacebook() {
     const loadCoreData = useCallback(async () => {
         setError('');
         try {
-            const [statusData, uploadsData, jobsData, pagesData] = await Promise.all([
-                getFacebookStatus(),
-                listSocialUploads().catch(() => ({ items: [] })),
-                listUploadJobs().catch(() => ({ items: [] })),
-                listFacebookPages().catch(() => ({ pages: [] })),
-
-            ]);
+            const statusData = await getFacebookStatus();
             setStatus(statusData);
-            setUploads(uploadsData.items ?? []);
-            setJobs(jobsData.items ?? []);
-            const loadedPages = pagesData.pages ?? [];
-            setPages(loadedPages);
-            if (loadedPages.length > 0 && !selectedPageId) setSelectedPageId(loadedPages[0].id);
+
+            if (statusData?.connected) {
+                const [uploadsData, jobsData, pagesData] = await Promise.all([
+                    listSocialUploads('facebook').catch(() => ({ items: [] })),
+                    listUploadJobs('facebook').catch(() => ({ items: [] })),
+                    listFacebookPages().catch(() => ({ pages: [] })),
+                ]);
+                setUploads(uploadsData.items ?? []);
+                setJobs(jobsData.items ?? []);
+                const loadedPages = pagesData.pages ?? [];
+                setPages(loadedPages);
+                if (loadedPages.length > 0 && !selectedPageId) setSelectedPageId(loadedPages[0].id);
+            } else {
+                setUploads([]);
+                setJobs([]);
+                setPages([]);
+            }
             return statusData?.connected;
         } catch (err) {
             setError(err.message || 'Failed to load Facebook data');
@@ -129,6 +134,8 @@ export default function ConnectFacebook() {
         const isConn = await loadCoreData();
         if (isConn) {
             await loadPublishableClips();
+        } else {
+            setPublishableClips([]);
         }
 
         setLoading(false);
@@ -155,13 +162,25 @@ export default function ConnectFacebook() {
     // Poll jobs while pending
     useEffect(() => {
         const hasPending = jobs.some((j) => j.status === 'queued' || j.status === 'processing');
-        if (activeTab !== 'jobs' || !hasPending) return;
+        if (!hasPending) return;
 
         const interval = setInterval(() => {
-            listUploadJobs().then((data) => setJobs(data.items ?? [])).catch(() => { });
+            listUploadJobs('facebook').then((data) => setJobs(data.items ?? [])).catch(() => { });
         }, 5000);
         return () => clearInterval(interval);
-    }, [activeTab, jobs]);
+    }, [jobs]);
+
+    const prevPending = useRef(0);
+    useEffect(() => {
+        const currentPending = jobs.filter((j) => j.status === 'queued' || j.status === 'processing').length;
+        if (currentPending < prevPending.current) {
+            setTimeout(() => {
+                listSocialUploads('facebook').then((data) => setUploads(data.items ?? [])).catch(() => {});
+                fetchPublishableClips('facebook').then((data) => setPublishableClips(data)).catch(() => {});
+            }, 2500);
+        }
+        prevPending.current = currentPending;
+    }, [jobs]);
 
     const handleConnect = async () => {
         setConnecting(true);
@@ -214,14 +233,13 @@ export default function ConnectFacebook() {
             setError('Connect Facebook first');
             return;
         }
-        setPublishing(true);
+        setPublishingId(clip.id);
         setError('');
         setMessage('');
         try {
             const result = await publishClipToFacebook(clip.id, {
                 title: clip.title,
-                description: publishDescription || `Uploaded via ClipRank — ${clip.reason || ''}`.trim(),
-                privacyStatus,
+                description: publishDescription || "",
                 pageId: selectedPageId,
             });
             setMessage(`Upload queued! Job ID: ${result.jobId}`);
@@ -231,7 +249,7 @@ export default function ConnectFacebook() {
         } catch (err) {
             setError(err.message || 'Publish failed');
         } finally {
-            setPublishing(false);
+            setPublishingId(null);
         }
     };
 
@@ -245,7 +263,7 @@ export default function ConnectFacebook() {
             setError('Select at least one clip');
             return;
         }
-        setPublishing(true);
+        setPublishingId('bulk');
         setError('');
         setMessage('');
         try {
@@ -253,8 +271,7 @@ export default function ConnectFacebook() {
                 selected.map((clip) => ({
                     clipId: clip.id,
                     title: clip.title,
-                    description: publishDescription || `Uploaded via ClipRank`,
-                    privacyStatus,
+                    description: publishDescription || "",
                     pageId: selectedPageId,
                 })),
             );
@@ -266,7 +283,7 @@ export default function ConnectFacebook() {
         } catch (err) {
             setError(err.message || 'Bulk publish failed');
         } finally {
-            setPublishing(false);
+            setPublishingId(null);
         }
     };
 
@@ -501,38 +518,7 @@ export default function ConnectFacebook() {
                                                 Upload Settings
                                             </h3>
                                             <div className="grid sm:grid-cols-2 gap-4">
-                                                <div className="flex flex-col">
-                                                    <label className="block text-xs font-medium text-muted mb-1.5">
-                                                        Privacy
-                                                    </label>
 
-                                                    <div className="relative">
-                                                        <select
-                                                            value={privacyStatus}
-                                                            onChange={(e) => setPrivacyStatus(e.target.value)}
-                                                            className="input-field w-full appearance-none pr-10"
-                                                        >
-                                                            {PRIVACY_OPTIONS.map((opt) => (
-                                                                <option key={opt.value} value={opt.value}>
-                                                                    {opt.label}
-                                                                </option>
-                                                            ))}
-                                                        </select>
-
-                                                        <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2">
-                                                            <svg
-                                                                className="w-4 h-4"
-                                                                fill="none"
-                                                                stroke="currentColor"
-                                                                strokeWidth="2"
-                                                                viewBox="0 0 24 24"
-                                                            >
-                                                                <path d="m6 9 6 6 6-6" />
-                                                            </svg>
-                                                        </span>
-                                                    </div>
-
-                                                </div>
                                                 <div className="flex flex-col">
                                                     <label className="block text-xs font-medium text-muted mb-1.5">
                                                         Facebook Page
@@ -562,7 +548,7 @@ export default function ConnectFacebook() {
                                                         type="text"
                                                         value={publishDescription}
                                                         onChange={(e) => setPublishDescription(e.target.value)}
-                                                        placeholder="Uploaded via ClipRank"
+                                                        placeholder=""
                                                         className="input-field w-full"
                                                     />
                                                 </div>
@@ -570,10 +556,10 @@ export default function ConnectFacebook() {
                                             {selectedClipIds.size > 0 && (
                                                 <button
                                                     onClick={handleBulkPublish}
-                                                    disabled={publishing}
+                                                    disabled={publishingId !== null}
                                                     className="btn-primary w-full sm:w-auto justify-center"
                                                 >
-                                                    {publishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                                                    {publishingId === 'bulk' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                                                     Publish {selectedClipIds.size} selected to Facebook
                                                 </button>
                                             )}
@@ -636,10 +622,10 @@ export default function ConnectFacebook() {
 
                                                             <button
                                                                 onClick={() => handlePublishSingle(clip)}
-                                                                disabled={publishing}
+                                                                disabled={publishingId !== null}
                                                                 className="btn-primary text-xs py-1.5 px-3 flex-shrink-0"
                                                             >
-                                                                {publishing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                                                                {publishingId === clip.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
                                                                 Publish
                                                             </button>
                                                         </li>
