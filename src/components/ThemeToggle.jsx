@@ -1,15 +1,28 @@
 import { Sun, Moon } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
+import { useEffect, useState } from 'react';
 
 /**
  * ThemeToggle — animated sun/moon icon button.
  * Pass `variant="compact"` for the mobile topbar (no label).
+ *
+ * Uses a mounted guard so the server always renders the "dark" default and the
+ * client swaps in the real stored theme after hydration — preventing the
+ * React hydration mismatch warning.
  */
 export default function ThemeToggle({ variant = 'default' }) {
   const { theme, toggleTheme, isDark } = useTheme();
 
-  const label = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+  // Avoid hydration mismatch: the server always renders 'dark' (no window),
+  // so we delay showing the real theme-dependent UI until after mount.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  // Before mount, render a neutral placeholder that matches the server output
+  // (dark mode defaults). This avoids any SSR/client mismatch.
+  const effectiveIsDark = mounted ? isDark : true;
+  const label = effectiveIsDark ? 'Switch to light mode' : 'Switch to dark mode';
 
   if (variant === 'icon-only') {
     return (
@@ -22,14 +35,14 @@ export default function ThemeToggle({ variant = 'default' }) {
         <span className="relative w-5 h-5 flex flex-shrink-0">
           <AnimatePresence mode="wait" initial={false}>
             <motion.span
-              key={theme}
+              key={effectiveIsDark ? 'dark' : 'light'}
               initial={{ scale: 0.5, rotate: -90, opacity: 0 }}
               animate={{ scale: 1, rotate: 0, opacity: 1 }}
               exit={{ scale: 0.5, rotate: 90, opacity: 0 }}
               transition={{ duration: 0.2, ease: 'easeInOut' }}
               className="absolute inset-0 flex items-center justify-center"
             >
-              {isDark
+              {effectiveIsDark
                 ? <Sun className="w-5 h-5 text-amber-400" />
                 : <Moon className="w-5 h-5 text-indigo-400" />
               }
@@ -53,14 +66,14 @@ export default function ThemeToggle({ variant = 'default' }) {
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-background/70">
             <AnimatePresence mode="wait" initial={false}>
               <motion.span
-                key={theme}
+                key={effectiveIsDark ? 'dark' : 'light'}
                 initial={{ scale: 0.5, rotate: -90, opacity: 0 }}
                 animate={{ scale: 1, rotate: 0, opacity: 1 }}
                 exit={{ scale: 0.5, rotate: 90, opacity: 0 }}
                 transition={{ duration: 0.2, ease: 'easeInOut' }}
                 className="flex items-center justify-center"
               >
-                {isDark
+                {effectiveIsDark
                   ? <Sun className="w-4 h-4 text-amber-400" />
                   : <Moon className="w-4 h-4 text-indigo-400" />
                 }
@@ -70,7 +83,7 @@ export default function ThemeToggle({ variant = 'default' }) {
           <span>Theme</span>
         </span>
         <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-accent/80">
-          {isDark ? 'Light' : 'Dark'}
+          {effectiveIsDark ? 'Light' : 'Dark'}
         </span>
       </button>
     );
@@ -86,7 +99,7 @@ export default function ThemeToggle({ variant = 'default' }) {
       className={`
         w-full flex items-center gap-3 px-3 py-2 rounded-lg border text-sm font-medium
         transition-all duration-200 cursor-pointer
-        ${isDark
+        ${effectiveIsDark
           ? 'bg-surface border-border text-muted hover:text-primary hover:border-accent/30'
           : 'bg-card   border-border text-muted hover:text-primary hover:border-accent/30'
         }
@@ -96,14 +109,14 @@ export default function ThemeToggle({ variant = 'default' }) {
       <span className="relative w-4 h-4 flex-shrink-0">
         <AnimatePresence mode="wait" initial={false}>
           <motion.span
-            key={theme}
+            key={effectiveIsDark ? 'dark' : 'light'}
             initial={{ scale: 0.4, rotate: -90, opacity: 0 }}
             animate={{ scale: 1, rotate: 0, opacity: 1 }}
             exit={{ scale: 0.4, rotate: 90, opacity: 0 }}
             transition={{ duration: 0.22, ease: 'easeInOut' }}
             className="absolute inset-0 flex items-center justify-center"
           >
-            {isDark
+            {effectiveIsDark
               ? <Sun className="w-4 h-4 text-amber-400" />
               : <Moon className="w-4 h-4 text-indigo-400" />
             }
@@ -111,16 +124,16 @@ export default function ThemeToggle({ variant = 'default' }) {
         </AnimatePresence>
       </span>
 
-      <span>{isDark ? 'Light mode' : 'Dark mode'}</span>
+      <span>{effectiveIsDark ? 'Light mode' : 'Dark mode'}</span>
 
       {/* Pill indicator */}
       <span className={`
         ml-auto w-8 h-4 rounded-full border flex items-center transition-all duration-300 flex-shrink-0
-        ${isDark ? 'bg-accent/20 border-accent/40 justify-end' : 'bg-card border-border justify-start'}
+        ${effectiveIsDark ? 'bg-accent/20 border-accent/40 justify-end' : 'bg-card border-border justify-start'}
       `}>
         <span className={`
           w-3 h-3 rounded-full mx-0.5 transition-all duration-300
-          ${isDark ? 'bg-accent' : 'bg-muted/50'}
+          ${effectiveIsDark ? 'bg-accent' : 'bg-muted/50'}
         `} />
       </span>
     </button>

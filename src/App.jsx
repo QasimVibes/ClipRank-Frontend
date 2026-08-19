@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import GuestRoute from './components/GuestRoute';
@@ -14,6 +14,10 @@ import Signup from './pages/Signup';
 import Home from './pages/Home';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 
+// On the server (SSR), entry-server.jsx wraps App in a <StaticRouter>.
+// On the client, entry-client.jsx wraps App in a <BrowserRouter>.
+// App itself only renders <Routes> so it works in both environments.
+
 function AppLayout() {
   return (
     <Layout>
@@ -24,46 +28,47 @@ function AppLayout() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route
-          path="/login"
-          element={
-            <GuestRoute>
-              <Login />
-            </GuestRoute>
-          }
-        />
-        <Route
-          path="/signup"
-          element={
-            <GuestRoute>
-              <Signup />
-            </GuestRoute>
-          }
-        />
+    <Routes>
+      <Route
+        path="/login"
+        element={
+          <GuestRoute>
+            <Login />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/signup"
+        element={
+          <GuestRoute>
+            <Signup />
+          </GuestRoute>
+        }
+      />
 
-        <Route path="/" element={<Home />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      {/* SSR-enabled public pages */}
+      <Route path="/" element={<Home />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
-        <Route
-          element={
-            <ProtectedRoute>
-              <AppLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="/dashboard" element={<Submit />} />
-          <Route path="/processing/:jobId" element={<Processing />} />
-          <Route path="/gallery/:jobId" element={<Gallery />} />
-          <Route path="/history" element={<History />} />
-          <Route path="/connect/youtube" element={<ConnectYouTube />} />
-          <Route path="/connect/facebook" element={<ConnectFacebook />} />
-          <Route path="/connect/instagram" element={<ConnectInstagram />} />
-        </Route>
+      {/* Protected client-side routes */}
+      <Route
+        element={
+          <ProtectedRoute>
+            <AppLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/dashboard" element={<Submit />} />
+        <Route path="/processing/:jobId" element={<Processing />} />
+        <Route path="/gallery/:jobId" element={<Gallery />} />
+        <Route path="/history" element={<History />} />
+        <Route path="/connect/youtube" element={<ConnectYouTube />} />
+        <Route path="/connect/youtube" element={<ConnectYouTube />} />
+        <Route path="/connect/facebook" element={<ConnectFacebook />} />
+        <Route path="/connect/instagram" element={<ConnectInstagram />} />
+      </Route>
 
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }

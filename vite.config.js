@@ -16,5 +16,13 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+    // Tell Vite to use the 'node' export condition when bundling SSR code.
+    // This is needed for react-router-dom v7 which exports different bundles
+    // depending on the environment condition.
+    ssr: {
+      resolve: {
+        conditions: ['node', 'module', 'import', 'default'],
+      },
+    },
   }
 })

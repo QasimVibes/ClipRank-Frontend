@@ -10,7 +10,7 @@ export default function PrivacyPolicy() {
           <ArrowLeft className="w-4 h-4" />
           Back to Home
         </Link>
-        
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -19,12 +19,12 @@ export default function PrivacyPolicy() {
         >
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-8">Privacy Policy</h1>
           <p className="text-muted mb-8">Last updated: {new Date().toLocaleDateString()}</p>
-          
+
           <div className="space-y-8 text-muted leading-relaxed">
             <section>
               <h2 className="text-2xl font-bold text-primary mb-4">1. Introduction</h2>
               <p>
-                Welcome to ClipRank ("we," "our," or "us"). We respect your privacy and are committed to protecting your personal data. 
+                Welcome to ClipRank ("we," "our," or "us"). We respect your privacy and are committed to protecting your personal data.
                 This privacy policy will inform you as to how we look after your personal data when you visit our website and tell you about your privacy rights.
               </p>
             </section>
@@ -42,12 +42,18 @@ export default function PrivacyPolicy() {
               <p>
                 ClipRank integrates with several third-party platforms to provide our services. By connecting these platforms, you agree to their respective terms and policies:
               </p>
-              <ul className="list-disc pl-6 mt-4 space-y-4">
+              <p className="mt-4">
+                Specifically regarding our supported platforms:
+              </p>
+              <ul className="list-disc pl-6 mt-2 space-y-2">
                 <li>
-                  <strong>Google & YouTube:</strong> ClipRank's use and transfer of information received from Google APIs adheres to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noreferrer" className="text-accent hover:underline">Google API Services User Data Policy</a>, including the Limited Use requirements. By connecting YouTube, you agree to be bound by the <a href="https://www.youtube.com/t/terms" target="_blank" rel="noreferrer" className="text-accent hover:underline">YouTube Terms of Service</a>. You can revoke this access at any time via the <a href="https://security.google.com/settings/security/permissions" target="_blank" rel="noreferrer" className="text-accent hover:underline">Google Security Settings page</a>.
+                  We use YouTube API Services (specifically <code>youtube.readonly</code> and <code>youtube.upload</code> scopes) to authenticate users, fetch public channel information for verification, and upload user-selected videos directly to their YouTube channels. By using our service, you agree to be bound by the <a href="https://www.youtube.com/t/terms" target="_blank" rel="noreferrer" className="text-accent hover:underline">YouTube Terms of Service</a>. Users can revoke access via the <a href="https://security.google.com/settings/security/permissions" target="_blank" rel="noreferrer" className="text-accent hover:underline">Google Security Settings page</a>.
                 </li>
                 <li>
-                  <strong>Meta (Facebook & Instagram):</strong> We use Meta Platform APIs to authenticate users and fetch public video URLs/metadata necessary for clip generation. By using these features, you agree to the <a href="https://help.instagram.com/581066165581870" target="_blank" rel="noreferrer" className="text-accent hover:underline">Instagram Terms of Use</a>, <a href="https://www.facebook.com/terms.php" target="_blank" rel="noreferrer" className="text-accent hover:underline">Facebook Terms of Service</a>, and the Meta Platform Terms. Data retrieved from Meta is used strictly for the core function of the application and is never sold to third parties or used for advertising.
+                  We use Instagram and Facebook Graph APIs to fetch video URLs and metadata. By using these features, you agree to be bound by the <a href="https://help.instagram.com/581066165581870" target="_blank" rel="noreferrer" className="text-accent hover:underline">Instagram Terms of Use</a> and <a href="https://www.facebook.com/terms.php" target="_blank" rel="noreferrer" className="text-accent hover:underline">Facebook Terms of Service</a>.
+                </li>
+                <li>
+                  We only use your data to perform the core functions of the application (e.g., retrieving channel details and publishing user-initiated clips). We do not sell or share this data with third parties for advertising or any unapproved purposes.
                 </li>
               </ul>
             </section>
@@ -73,9 +79,28 @@ export default function PrivacyPolicy() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-bold text-primary mb-4">6. Contact Us</h2>
+              <h2 className="text-2xl font-bold text-primary mb-4">5. Data Protection</h2>
               <p>
-                If you have any questions about this privacy policy, please contact us at: <a href="mailto:privacy@cliprank.app" className="text-accent hover:underline">privacy@cliprank.app</a>.
+                We implement a variety of security measures to maintain the safety of your personal information. All sensitive data exchanged between your browser and our servers is transmitted over a secure SSL/TLS encrypted connection. Authentication tokens, such as those provided by Google, are stored securely using industry-standard encryption and database access control practices to protect against unauthorized access, alteration, disclosure, or destruction of your personal data.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-bold text-primary mb-4">6. Data Retention and Deletion</h2>
+              <p>
+                We retain your Google user data (such as authentication tokens and channel identifiers) only for as long as necessary to provide you with our publishing services.
+                OAuth access and refresh tokens are retained while your account connection is active and are securely deleted when you disconnect your account or log out.
+                Video metadata and generated clip information are retained temporarily to facilitate processing and are periodically purged.
+              </p>
+              <p className="mt-4">
+                You have the right to request the deletion of your personal data at any time. You can revoke our access to your Google account via the <a href="https://security.google.com/settings/security/permissions" target="_blank" rel="noreferrer" className="text-accent hover:underline">Google Security Settings page</a>. Doing so will immediately cease any further data collection. To request the complete deletion of your previously collected data from our servers, please contact us at <a href="mailto:privacy@clipers.xyz" className="text-accent hover:underline">privacy@clipers.xyz</a>, and we will process your request promptly.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-bold text-primary mb-4">7. Contact Us</h2>
+              <p>
+                If you have any questions about this privacy policy or wish to submit a data deletion request, please contact us at: <a href="mailto:privacy@clipers.xyz" className="text-accent hover:underline">privacy@clipers.xyz</a>.
               </p>
             </section>
           </div>
