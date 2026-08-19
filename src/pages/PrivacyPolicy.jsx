@@ -66,35 +66,47 @@ export default function PrivacyPolicy() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-bold text-primary mb-4">5. Data Deletion Instructions</h2>
-              <p>
-                In compliance with Meta Platform rules and privacy regulations, you have the right to request the deletion of your personal data at any time. If you wish to delete your data or remove our app's access to your Facebook/Instagram account, you can do so by following these steps:
-              </p>
-              <ol className="list-decimal pl-6 mt-2 space-y-2">
-                <li>Go to your Facebook profile and click on <strong>Settings &amp; Privacy</strong> &gt; <strong>Settings</strong>.</li>
-                <li>Navigate to <strong>Apps and Websites</strong>.</li>
-                <li>Find <strong>ClipRank</strong> in the list of active apps, click "Remove", and confirm.</li>
-                <li>To request complete deletion of any data we might have stored, please email us directly at <a href="mailto:privacy@cliprank.app" className="text-accent hover:underline">privacy@cliprank.app</a> with the subject "Data Deletion Request". We will process your request within 7 business days.</li>
-              </ol>
-            </section>
-
-            <section>
               <h2 className="text-2xl font-bold text-primary mb-4">5. Data Protection</h2>
               <p>
-                We implement a variety of security measures to maintain the safety of your personal information. All sensitive data exchanged between your browser and our servers is transmitted over a secure SSL/TLS encrypted connection. Authentication tokens, such as those provided by Google, are stored securely using industry-standard encryption and database access control practices to protect against unauthorized access, alteration, disclosure, or destruction of your personal data.
+                We implement a variety of security measures to maintain the safety of your personal information. All sensitive data exchanged between your browser and our servers is transmitted over a secure SSL/TLS encrypted connection. Authentication tokens, such as those provided by Google and Meta, are stored securely using industry-standard encryption and database access control practices to protect against unauthorized access, alteration, disclosure, or destruction of your personal data.
               </p>
             </section>
 
             <section>
               <h2 className="text-2xl font-bold text-primary mb-4">6. Data Retention and Deletion</h2>
               <p>
-                We retain your Google user data (such as authentication tokens and channel identifiers) only for as long as necessary to provide you with our publishing services.
+                We retain your user data (such as authentication tokens and channel/profile identifiers) only for as long as necessary to provide you with our services.
                 OAuth access and refresh tokens are retained while your account connection is active and are securely deleted when you disconnect your account or log out.
                 Video metadata and generated clip information are retained temporarily to facilitate processing and are periodically purged.
               </p>
-              <p className="mt-4">
-                You have the right to request the deletion of your personal data at any time. You can revoke our access to your Google account via the <a href="https://security.google.com/settings/security/permissions" target="_blank" rel="noreferrer" className="text-accent hover:underline">Google Security Settings page</a>. Doing so will immediately cease any further data collection. To request the complete deletion of your previously collected data from our servers, please contact us at <a href="mailto:privacy@clipers.xyz" className="text-accent hover:underline">privacy@clipers.xyz</a>, and we will process your request promptly.
-              </p>
+              
+              <div className="mt-6 space-y-6">
+                <div>
+                  <h3 className="text-xl font-bold text-primary mb-2">6.1 Meta (Facebook/Instagram) Data Deletion</h3>
+                  <p>
+                    In compliance with Meta Platform rules, you have the right to request the deletion of your personal data at any time. To remove our app's access to your Facebook/Instagram account:
+                  </p>
+                  <ol className="list-decimal pl-6 mt-2 space-y-2">
+                    <li>Go to your Facebook profile and click on <strong>Settings &amp; Privacy</strong> &gt; <strong>Settings</strong>.</li>
+                    <li>Navigate to <strong>Apps and Websites</strong>.</li>
+                    <li>Find <strong>ClipRank</strong> in the list of active apps, click "Remove", and confirm.</li>
+                  </ol>
+                </div>
+
+                <div>
+                  <h3 className="text-xl font-bold text-primary mb-2">6.2 Google (YouTube) Data Deletion</h3>
+                  <p>
+                    You can revoke our access to your Google account at any time via the <a href="https://security.google.com/settings/security/permissions" target="_blank" rel="noreferrer" className="text-accent hover:underline">Google Security Settings page</a>. Doing so will immediately cease any further data collection from your YouTube account.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="text-xl font-bold text-primary mb-2">6.3 Complete Data Deletion Request</h3>
+                  <p>
+                    To request the complete deletion of any data we might have stored on our servers (including both Meta and Google associated data), please email us directly at <a href="mailto:privacy@clipers.xyz" className="text-accent hover:underline">privacy@clipers.xyz</a> with the subject "Data Deletion Request". We will process your request within 7 business days.
+                  </p>
+                </div>
+              </div>
             </section>
 
             <section>
