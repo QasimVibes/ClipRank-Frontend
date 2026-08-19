@@ -7,6 +7,8 @@ import Processing from './pages/Processing';
 import Gallery from './pages/Gallery';
 import History from './pages/History';
 import ConnectYouTube from './pages/ConnectYouTube';
+import ConnectFacebook from './pages/ConnectFacebook';
+import ConnectInstagram from './pages/ConnectInstagram';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Home from './pages/Home';
@@ -61,6 +63,9 @@ export default function App() {
         <Route path="/gallery/:jobId" element={<Gallery />} />
         <Route path="/history" element={<History />} />
         <Route path="/connect/youtube" element={<ConnectYouTube />} />
+        <Route path="/connect/youtube" element={<ConnectYouTube />} />
+        <Route path="/connect/facebook" element={<ConnectFacebook />} />
+        <Route path="/connect/instagram" element={<ConnectInstagram />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

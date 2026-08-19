@@ -6,18 +6,19 @@ import {
   RefreshCw, Send, Layers, Activity, Link2, Clock, AlertCircle,
   ChevronRight, CheckSquare, Square, Eye,
 } from 'lucide-react';
-import { YouTubeIcon } from '../components/PlatformIcon';
+import { InstagramIcon } from '../components/PlatformIcon';
 import RankBadge from '../components/RankBadge';
 import {
-  disconnectYouTube,
-  getYouTubeConnectUrl,
-  getYouTubeStatus,
+  disconnectInstagram,
+  getInstagramConnectUrl,
+  getInstagramStatus,
   listSocialUploads,
   listUploadJobs,
-  publishClipToYouTube,
-  bulkPublishToYouTube,
+  publishClipToInstagram,
+  bulkPublishToInstagram,
   getBatchUploadJobs,
   fetchPublishableClips,
+  listInstagramAccounts,
 } from '../api';
 
 const TABS = [
@@ -56,7 +57,7 @@ function StatusPill({ status }) {
   );
 }
 
-export default function ConnectYouTube() {
+export default function ConnectInstagram() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -76,8 +77,9 @@ export default function ConnectYouTube() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  const [privacyStatus, setPrivacyStatus] = useState('private');
   const [publishDescription, setPublishDescription] = useState('');
+  const [pages, setPages] = useState([]);
+  const [selectedPageId, setSelectedPageId] = useState('');
   const [selectedBatch, setSelectedBatch] = useState(null);
   const [batchLoading, setBatchLoading] = useState(false);
 
@@ -87,31 +89,36 @@ export default function ConnectYouTube() {
   const loadCoreData = useCallback(async () => {
     setError('');
     try {
-      const statusData = await getYouTubeStatus();
+      const statusData = await getInstagramStatus();
       setStatus(statusData);
-      
+
       if (statusData?.connected) {
-        const [uploadsData, jobsData] = await Promise.all([
-          listSocialUploads('youtube').catch(() => ({ items: [] })),
-          listUploadJobs('youtube').catch(() => ({ items: [] })),
+        const [uploadsData, jobsData, pagesData] = await Promise.all([
+          listSocialUploads('instagram').catch(() => ({ items: [] })),
+          listUploadJobs('instagram').catch(() => ({ items: [] })),
+          listInstagramAccounts().catch(() => ({ accounts: [] })),
         ]);
         setUploads(uploadsData.items ?? []);
         setJobs(jobsData.items ?? []);
+        const loadedPages = pagesData.accounts ?? [];
+        setPages(loadedPages);
+        if (loadedPages.length > 0 && !selectedPageId) setSelectedPageId(loadedPages[0].id);
       } else {
         setUploads([]);
         setJobs([]);
+        setPages([]);
       }
       return statusData?.connected;
     } catch (err) {
-      setError(err.message || 'Failed to load YouTube data');
+      setError(err.message || 'Failed to load Instagram data');
       return false;
     }
   }, []);
 
-  const loadPublishableClips = useCallback(async () => {
+    const loadPublishableClips = useCallback(async () => {
     setClipsLoading(true);
     try {
-      const clips = await fetchPublishableClips();
+      const clips = await fetchPublishableClips('instagram');
       setPublishableClips(clips);
     } catch (err) {
       setError(err.message || 'Failed to load clips');
@@ -123,14 +130,14 @@ export default function ConnectYouTube() {
   const loadAll = useCallback(async (showRefresh = false) => {
     if (showRefresh) setRefreshing(true);
     else setLoading(true);
-    
+
     const isConn = await loadCoreData();
     if (isConn) {
       await loadPublishableClips();
     } else {
       setPublishableClips([]);
     }
-    
+
     setLoading(false);
     setRefreshing(false);
   }, [loadCoreData, loadPublishableClips]);
@@ -140,7 +147,7 @@ export default function ConnectYouTube() {
     const oauthError = searchParams.get('error');
 
     if (success === '1') {
-      setMessage('YouTube account connected successfully!');
+      setMessage('Instagram account connected successfully!');
       setActiveTab('overview');
       setSearchParams({}, { replace: true });
     } else if (oauthError) {
@@ -158,7 +165,7 @@ export default function ConnectYouTube() {
     if (!hasPending) return;
 
     const interval = setInterval(() => {
-      listUploadJobs('youtube').then((data) => setJobs(data.items ?? [])).catch(() => { });
+      listUploadJobs('instagram').then((data) => setJobs(data.items ?? [])).catch(() => { });
     }, 5000);
     return () => clearInterval(interval);
   }, [jobs]);
@@ -168,8 +175,8 @@ export default function ConnectYouTube() {
     const currentPending = jobs.filter((j) => j.status === 'queued' || j.status === 'processing').length;
     if (currentPending < prevPending.current) {
       setTimeout(() => {
-        listSocialUploads('youtube').then((data) => setUploads(data.items ?? [])).catch(() => {});
-        fetchPublishableClips('youtube').then((data) => setPublishableClips(data)).catch(() => {});
+        listSocialUploads('instagram').then((data) => setUploads(data.items ?? [])).catch(() => {});
+        fetchPublishableClips('instagram').then((data) => setPublishableClips(data)).catch(() => {});
       }, 2500);
     }
     prevPending.current = currentPending;
@@ -179,21 +186,21 @@ export default function ConnectYouTube() {
     setConnecting(true);
     setError('');
     try {
-      const { url } = await getYouTubeConnectUrl();
+      const { url } = await getInstagramConnectUrl();
       window.location.href = url;
     } catch (err) {
-      setError(err.message || 'Failed to start YouTube connection');
+      setError(err.message || 'Failed to start Instagram connection');
       setConnecting(false);
     }
   };
 
   const handleDisconnect = async () => {
-    if (!window.confirm('Disconnect your YouTube account?')) return;
+    if (!window.confirm('Disconnect your Instagram account?')) return;
     setDisconnecting(true);
     setError('');
     try {
-      await disconnectYouTube();
-      setMessage('YouTube account disconnected.');
+      await disconnectInstagram();
+      setMessage('Instagram account disconnected.');
       setPublishableClips([]);
       setSelectedClipIds(new Set());
       await loadCoreData();
@@ -223,17 +230,17 @@ export default function ConnectYouTube() {
 
   const handlePublishSingle = async (clip) => {
     if (!connected) {
-      setError('Connect YouTube first');
+      setError('Connect Instagram first');
       return;
     }
     setPublishingId(clip.id);
     setError('');
     setMessage('');
     try {
-      const result = await publishClipToYouTube(clip.id, {
+      const result = await publishClipToInstagram(clip.id, {
         title: clip.title,
         description: publishDescription || "",
-        privacyStatus,
+        pageId: selectedPageId,
       });
       setMessage(`Upload queued! Job ID: ${result.jobId}`);
       setActiveTab('jobs');
@@ -248,7 +255,7 @@ export default function ConnectYouTube() {
 
   const handleBulkPublish = async () => {
     if (!connected) {
-      setError('Connect YouTube first');
+      setError('Connect Instagram first');
       return;
     }
     const selected = publishableClips.filter((c) => selectedClipIds.has(c.id));
@@ -260,12 +267,12 @@ export default function ConnectYouTube() {
     setError('');
     setMessage('');
     try {
-      const result = await bulkPublishToYouTube(
+      const result = await bulkPublishToInstagram(
         selected.map((clip) => ({
           clipId: clip.id,
           title: clip.title,
           description: publishDescription || "",
-          privacyStatus,
+          pageId: selectedPageId,
         })),
       );
       setMessage(`Bulk upload queued! Batch ID: ${result.batchId} (${result.total} clips)`);
@@ -309,12 +316,12 @@ export default function ConnectYouTube() {
           <div className="flex items-center gap-4">
             <div
               className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
-              style={{ background: 'linear-gradient(135deg, #FF0000 0%, #CC0000 100%)', boxShadow: '0 4px 20px rgba(255,0,0,0.25)' }}
+              style={{ background: 'linear-gradient(135deg, #E1306C 0%, #C11250 100%)', boxShadow: '0 4px 20px rgba(225,48,108,0.25)' }}
             >
-              <YouTubeIcon className="w-7 h-7 text-white" />
+              <InstagramIcon className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-primary">YouTube Studio</h1>
+              <h1 className="text-2xl font-bold text-primary">Instagram Studio</h1>
               <p className="text-muted text-sm mt-0.5">
                 Connect, publish clips, and track uploads
               </p>
@@ -427,7 +434,7 @@ export default function ConnectYouTube() {
                           <CheckCircle2 className="w-6 h-6 text-success" />
                         </div>
                         <div>
-                          <p className="font-semibold text-primary text-lg">{account?.platformUsername || 'YouTube Channel'}</p>
+                          <p className="font-semibold text-primary text-lg">{account?.platformUsername || 'Instagram Channel'}</p>
                           <p className="text-sm text-muted">Channel connected &amp; ready to publish</p>
                           {account?.connectedAt && (
                             <p className="text-xs text-muted mt-1">
@@ -443,25 +450,25 @@ export default function ConnectYouTube() {
                     </div>
                   ) : (
                     <div className="text-center py-6 space-y-4">
-                      <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto">
-                        <YouTubeIcon className="w-8 h-8 text-red-500" />
+                      <div className="w-16 h-16 rounded-2xl bg-pink-500/10 border border-red-500/20 flex items-center justify-center mx-auto">
+                        <InstagramIcon className="w-8 h-8 text-pink-500" />
                       </div>
                       <div>
-                        <p className="font-semibold text-primary">Connect your YouTube channel</p>
+                        <p className="font-semibold text-primary">Connect your Instagram channel</p>
                         <p className="text-sm text-muted mt-1 max-w-md mx-auto">
                           Grant ClipRank permission to upload clips to your channel. You'll be redirected to Google sign-in.
                         </p>
                       </div>
                       <button onClick={handleConnect} disabled={connecting} className="btn-primary mx-auto">
-                        {connecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <YouTubeIcon className="w-4 h-4" />}
-                        Connect YouTube
+                        {connecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <InstagramIcon className="w-4 h-4" />}
+                        Connect Instagram
                       </button>
                     </div>
                   )}
                 </div>
 
                 {connected && (
-                  <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="grid sm:grid-cols-3 gap-4">
                     <button
                       onClick={() => setActiveTab('publish')}
                       className="glass-card p-5 text-left hover:border-accent/40 transition-all group"
@@ -477,7 +484,7 @@ export default function ConnectYouTube() {
                     >
                       <Upload className="w-5 h-5 text-accent mb-2" />
                       <p className="font-semibold text-primary">View Published</p>
-                      <p className="text-xs text-muted mt-1">{uploads.length} videos on YouTube</p>
+                      <p className="text-xs text-muted mt-1">{uploads.length} videos on Instagram</p>
                       <ChevronRight className="w-4 h-4 text-muted mt-3 group-hover:translate-x-1 transition-transform" />
                     </button>
                   </div>
@@ -497,7 +504,7 @@ export default function ConnectYouTube() {
                 {!connected ? (
                   <div className="glass-card p-8 text-center text-muted">
                     <Link2 className="w-8 h-8 mx-auto mb-3 opacity-40" />
-                    <p>Connect YouTube first to publish clips.</p>
+                    <p>Connect Instagram first to publish clips.</p>
                     <button onClick={() => setActiveTab('overview')} className="btn-primary mt-4 text-sm">
                       Go to Overview
                     </button>
@@ -511,32 +518,25 @@ export default function ConnectYouTube() {
                         Upload Settings
                       </h3>
                       <div className="grid sm:grid-cols-2 gap-4">
+
                         <div className="flex flex-col">
                           <label className="block text-xs font-medium text-muted mb-1.5">
-                            Privacy
+                            Instagram Account
                           </label>
-
                           <div className="relative">
                             <select
-                              value={privacyStatus}
-                              onChange={(e) => setPrivacyStatus(e.target.value)}
+                              value={selectedPageId}
+                              onChange={(e) => setSelectedPageId(e.target.value)}
                               className="input-field w-full appearance-none pr-10"
                             >
-                              {PRIVACY_OPTIONS.map((opt) => (
-                                <option key={opt.value} value={opt.value}>
-                                  {opt.label}
+                              {pages.map((p) => (
+                                <option key={p.id} value={p.id}>
+                                  {p.name}
                                 </option>
                               ))}
                             </select>
-
                             <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2">
-                              <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                viewBox="0 0 24 24"
-                              >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                                 <path d="m6 9 6 6 6-6" />
                               </svg>
                             </span>
@@ -560,7 +560,7 @@ export default function ConnectYouTube() {
                           className="btn-primary w-full sm:w-auto justify-center"
                         >
                           {publishingId === 'bulk' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                          Publish {selectedClipIds.size} selected to YouTube
+                          Publish {selectedClipIds.size} selected to Instagram
                         </button>
                       )}
                     </div>
@@ -657,8 +657,8 @@ export default function ConnectYouTube() {
                     {uploads.map((item) => (
                       <div key={item.id || item.platformVideoId} className="glass-card p-4 hover:border-accent/30 transition-all">
                         <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-red-500/15 flex items-center justify-center flex-shrink-0">
-                            <YouTubeIcon className="w-5 h-5 text-red-500" />
+                          <div className="w-10 h-10 rounded-xl bg-pink-500/15 flex items-center justify-center flex-shrink-0">
+                            <InstagramIcon className="w-5 h-5 text-pink-500" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-semibold text-primary truncate">{item.title}</p>
@@ -737,7 +737,7 @@ export default function ConnectYouTube() {
                               )}
                               {job.result?.url && (
                                 <a href={job.result.url} target="_blank" rel="noopener noreferrer" className="text-xs text-accent hover:text-accent-light hover:underline mt-2 inline-flex items-center gap-1 font-medium">
-                                  <YouTubeIcon className="w-3.5 h-3.5" /> View on YouTube <ExternalLink className="w-3 h-3" />
+                                  <InstagramIcon className="w-3.5 h-3.5" /> View on Instagram <ExternalLink className="w-3 h-3" />
                                 </a>
                               )}
                             </div>

@@ -175,16 +175,26 @@ export async function disconnectYouTube() {
   return response.json();
 }
 
-export async function listSocialUploads(page = 1, limit = 20) {
-  const response = await apiFetch(`/api/social/uploads?page=${page}&limit=${limit}`);
+export async function listSocialUploads(platform = null, page = 1, limit = 20) {
+  const platformParam = platform ? `&platform=${platform}` : '';
+  const response = await apiFetch(`/api/social/uploads?page=${page}&limit=${limit}${platformParam}`);
   if (!response.ok) throw new Error(await parseError(response));
-  return response.json();
+  const data = await response.json();
+  if (platform && data.items) {
+      data.items = data.items.filter(item => !item.platform || item.platform === platform);
+  }
+  return data;
 }
 
-export async function listUploadJobs(page = 1, limit = 20) {
-  const response = await apiFetch(`/api/social/jobs?page=${page}&limit=${limit}`);
+export async function listUploadJobs(platform = null, page = 1, limit = 20) {
+  const platformParam = platform ? `&platform=${platform}` : '';
+  const response = await apiFetch(`/api/social/jobs?page=${page}&limit=${limit}${platformParam}`);
   if (!response.ok) throw new Error(await parseError(response));
-  return response.json();
+  const data = await response.json();
+  if (platform && data.items) {
+      data.items = data.items.filter(item => !item.platform || item.platform === platform);
+  }
+  return data;
 }
 
 export async function publishClipToYouTube(clipId, { title, description, privacyStatus = 'private', tags } = {}) {
@@ -226,7 +236,7 @@ export async function getBatchUploadJobs(batchId) {
 }
 
 /** Clips ready to publish (approved/completed, has video, not yet on YouTube) */
-export async function fetchPublishableClips() {
+export async function fetchPublishableClips(platform = 'youtube') {
   const { items: videos } = await listVideos(1, 50);
   const doneVideos = (videos ?? []).filter((v) => v.status === 'done');
   const publishable = [];
@@ -234,11 +244,11 @@ export async function fetchPublishableClips() {
   for (const video of doneVideos) {
     const clips = await getVideoClips(video._id);
     for (const clip of clips) {
-      const postedToYouTube = (clip.posted_to ?? []).some(
-        (entry) => (typeof entry === 'object' ? entry.platform : String(entry)) === 'youtube',
+      const postedToPlatform = (clip.posted_to ?? []).some(
+        (entry) => (typeof entry === 'object' ? entry.platform : String(entry)) === platform,
       );
       const isReady = (clip.status === 'approved' || clip.status === 'completed') && clip.public_url;
-      if (isReady && !postedToYouTube) {
+      if (isReady && !postedToPlatform) {
         const dur = Math.max(0, Math.round((clip.end || 0) - (clip.start || 0)));
         publishable.push({
           id: clip._id,
@@ -255,4 +265,109 @@ export async function fetchPublishableClips() {
   }
 
   return publishable;
+}
+
+// ── Social / Facebook ──
+
+export async function getFacebookStatus() {
+  const response = await apiFetch('/api/social/facebook/status');
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json();
+}
+
+export async function getFacebookConnectUrl() {
+  const response = await apiFetch('/api/social/facebook/connect-url');
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json();
+}
+
+export async function disconnectFacebook() {
+  const response = await apiFetch('/api/social/facebook/disconnect', { method: 'DELETE' });
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json();
+}
+
+export async function listFacebookPages() {
+  const response = await apiFetch('/api/social/facebook/pages');
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json();
+}
+
+export async function publishClipToFacebook(clipId, { title, description, privacyStatus = 'public', pageId, tags } = {}) {
+  const response = await apiFetch(`/api/social/clips/${clipId}/publish/facebook`, {
+    method: 'POST',
+    body: JSON.stringify({ title, description, privacyStatus, pageId, tags }),
+  });
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json();
+}
+
+export async function bulkPublishToFacebook(clips) {
+  const response = await apiFetch('/api/social/clips/publish/facebook/bulk', {
+    method: 'POST',
+    body: JSON.stringify({
+      clips: clips.map((c) => ({
+        clip_id: c.clipId,
+        title: c.title,
+        description: c.description,
+        privacyStatus: c.privacyStatus ?? 'public',
+        pageId: c.pageId,
+        tags: c.tags,
+      })),
+    }),
+  });
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json();
+}
+
+// ── Social / Instagram ──
+
+export async function getInstagramStatus() {
+  const response = await apiFetch('/api/social/instagram/status');
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json();
+}
+
+export async function getInstagramConnectUrl() {
+  const response = await apiFetch('/api/social/instagram/connect-url');
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json();
+}
+
+export async function disconnectInstagram() {
+  const response = await apiFetch('/api/social/instagram/disconnect', { method: 'DELETE' });
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json();
+}
+
+export async function listInstagramAccounts() {
+  const response = await apiFetch('/api/social/instagram/accounts');
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json();
+}
+
+export async function publishClipToInstagram(clipId, { title, description, pageId, tags } = {}) {
+  const response = await apiFetch(`/api/social/clips/${clipId}/publish/instagram`, {
+    method: 'POST',
+    body: JSON.stringify({ title, description, pageId, tags }),
+  });
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json();
+}
+
+export async function bulkPublishToInstagram(clips) {
+  const response = await apiFetch('/api/social/clips/publish/instagram/bulk', {
+    method: 'POST',
+    body: JSON.stringify({
+      clips: clips.map((c) => ({
+        clip_id: c.clipId,
+        title: c.title,
+        description: c.description,
+        pageId: c.pageId,
+        tags: c.tags,
+      })),
+    }),
+  });
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json();
 }
