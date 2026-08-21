@@ -115,6 +115,32 @@ export async function listVideos(page = 1, limit = 50) {
   return response.json();
 }
 
+export async function deleteVideo(jobId) {
+  const response = await apiFetch(`/api/videos/${jobId}`, { method: 'DELETE' });
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json();
+}
+
+// ── Manual Video Cutter ──
+
+export async function fetchManualVideo(url) {
+  const response = await apiFetch('/api/manual-clip/fetch', {
+    method: 'POST',
+    body: JSON.stringify({ url }),
+  });
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json();
+}
+
+export async function processManualClips(url, videoId, clips) {
+  const response = await apiFetch('/api/manual-clip/process', {
+    method: 'POST',
+    body: JSON.stringify({ url, videoId, clips }),
+  });
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json();
+}
+
 export async function getVideoClips(jobId) {
   const response = await apiFetch(`/api/videos/${jobId}/clips`);
   if (!response.ok) throw new Error(await parseError(response));
@@ -181,7 +207,7 @@ export async function listSocialUploads(platform = null, page = 1, limit = 20) {
   if (!response.ok) throw new Error(await parseError(response));
   const data = await response.json();
   if (platform && data.items) {
-      data.items = data.items.filter(item => !item.platform || item.platform === platform);
+    data.items = data.items.filter(item => !item.platform || item.platform === platform);
   }
   return data;
 }
@@ -192,7 +218,7 @@ export async function listUploadJobs(platform = null, page = 1, limit = 20) {
   if (!response.ok) throw new Error(await parseError(response));
   const data = await response.json();
   if (platform && data.items) {
-      data.items = data.items.filter(item => !item.platform || item.platform === platform);
+    data.items = data.items.filter(item => !item.platform || item.platform === platform);
   }
   return data;
 }

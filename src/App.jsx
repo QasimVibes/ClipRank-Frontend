@@ -12,6 +12,7 @@ import ConnectInstagram from './pages/ConnectInstagram';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Home from './pages/Home';
+import VideoCutter from './pages/VideoCutter';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 
 // On the server (SSR), entry-server.jsx wraps App in a <StaticRouter>.
@@ -59,6 +60,7 @@ export default function App() {
         }
       >
         <Route path="/dashboard" element={<Submit />} />
+        <Route path="/cutter" element={<VideoCutter />} />
         <Route path="/processing/:jobId" element={<Processing />} />
         <Route path="/gallery/:jobId" element={<Gallery />} />
         <Route path="/history" element={<History />} />
