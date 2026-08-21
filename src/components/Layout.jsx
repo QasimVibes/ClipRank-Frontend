@@ -10,6 +10,7 @@ import { YouTubeIcon, FacebookIcon, InstagramIcon } from './PlatformIcon';
 
 const NAV_LINKS = [
   { to: '/dashboard', icon: Home, label: 'Submit', badge: null },
+  { to: '/cutter', icon: Scissors, label: 'Video Cutter', badge: 'New' },
   { to: '/connect/youtube', icon: YouTubeIcon, label: 'YouTube', badge: null },
   { to: '/connect/facebook', icon: FacebookIcon, label: 'Facebook', badge: null },
   { to: '/connect/instagram', icon: InstagramIcon, label: 'Instagram', badge: null },

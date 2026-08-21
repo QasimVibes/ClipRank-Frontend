@@ -4,19 +4,13 @@ import { motion } from 'framer-motion';
 import {
   Clock, Scissors, ExternalLink, Plus, ChevronRight,
   CheckCircle2, Loader2, AlertCircle, Circle,
-  Download, FileText, BarChart2, Zap, RefreshCw
+  Download, FileText, BarChart2, Zap, RefreshCw, Trash2
 } from 'lucide-react';
 import RankBadge from '../components/RankBadge';
-import { listVideos } from '../api';
+import { listVideos, deleteVideo } from '../api';
 
 const STATUS_STEPS = ['queued', 'downloading', 'transcribing', 'ranking', 'analyzing', 'clipping', 'done'];
 
-
-const PLATFORM_COLORS = {
-  YouTube: '#FF0000',
-  Instagram: '#E1306C',
-  TikTok: '#ffffff',
-};
 
 const PLATFORM_BG = {
   YouTube: 'bg-red-500/10 text-red-400 border-red-500/20',
@@ -303,26 +297,55 @@ export default function History() {
                     </div>
                   </div>
 
-                  {/* Right side */}
-                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                    {job.topScore && (
-                      <RankBadge score={job.topScore} size="sm" />
-                    )}
-                    {job.status === 'done' && (
-                      <div className="flex items-center gap-1 text-xs text-muted group-hover:text-accent-light transition-colors">
-                        View clips
-                        <ChevronRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
-                      </div>
-                    )}
-                    {job.status !== 'done' && (
+                  {/* Right side Actions */}
+                  <div className="flex items-center gap-3 flex-shrink-0 ml-auto pl-2">
+                    
+                    {/* Scores / Progress */}
+                    <div className="flex flex-col items-end gap-1.5">
+                      {job.topScore && (
+                        <RankBadge score={job.topScore} size="sm" />
+                      )}
+                      {job.status !== 'done' && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); navigate(`/processing/${job.id}`); }}
+                          className="text-[10px] uppercase tracking-wider font-bold text-accent hover:text-accent-light transition-colors"
+                          id={`view-processing-${job.id}`}
+                        >
+                          Progress →
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="w-px h-8 bg-border/60 hidden sm:block mx-1" />
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-2">
+                      {job.status === 'done' && (
+                        <div className="flex items-center justify-center gap-1 px-3 py-2 rounded-xl bg-accent/10 text-accent text-xs font-semibold border border-accent/20 group-hover:bg-accent group-hover:text-white group-hover:shadow-[0_2px_10px_rgba(124,58,237,0.3)] transition-all duration-300">
+                          <span className="hidden sm:inline">View Clips</span>
+                          <ChevronRight className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+                        </div>
+                      )}
+                      
                       <button
-                        onClick={(e) => { e.stopPropagation(); navigate(`/processing/${job.id}`); }}
-                        className="text-xs text-accent hover:text-accent-light transition-colors"
-                        id={`view-processing-${job.id}`}
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if (window.confirm('Are you sure you want to delete this video and all its clips? This action cannot be undone.')) {
+                            try {
+                              await deleteVideo(job.id);
+                              setJobs(prev => prev.filter(j => j.id !== job.id));
+                            } catch(err) {
+                              alert(err.message || 'Failed to delete video');
+                            }
+                          }
+                        }}
+                        className="p-2 text-muted hover:text-red-500 hover:bg-red-500/15 rounded-xl transition-all duration-300 hover:scale-110 active:scale-95"
+                        title="Delete Video"
                       >
-                        View progress →
+                        <Trash2 className="w-4 h-4" />
                       </button>
-                    )}
+                    </div>
+
                   </div>
                 </div>
 
