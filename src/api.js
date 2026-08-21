@@ -197,10 +197,10 @@ export async function listUploadJobs(platform = null, page = 1, limit = 20) {
   return data;
 }
 
-export async function publishClipToYouTube(clipId, { title, description, privacyStatus = 'private', tags } = {}) {
+export async function publishClipToYouTube(clipId, { title, description, privacyStatus = 'private', tags, thumbnailUrl } = {}) {
   const response = await apiFetch(`/api/social/clips/${clipId}/publish/youtube`, {
     method: 'POST',
-    body: JSON.stringify({ title, description, privacyStatus, tags }),
+    body: JSON.stringify({ title, description, privacyStatus, tags, thumbnailUrl }),
   });
   if (!response.ok) throw new Error(await parseError(response));
   return response.json();
@@ -216,6 +216,7 @@ export async function bulkPublishToYouTube(clips) {
         description: c.description,
         privacyStatus: c.privacyStatus ?? 'private',
         tags: c.tags,
+        thumbnailUrl: c.thumbnailUrl,
       })),
     }),
   });
@@ -259,6 +260,8 @@ export async function fetchPublishableClips(platform = 'youtube') {
           public_url: clip.public_url,
           videoId: video._id,
           videoTitle: video.title || 'Untitled',
+          description: clip.reason || clip.description || video.description || clip.transcript_text || video.title || '',
+          thumbnailUrl: clip.thumbnail_url || video.thumbnail_url || (video.source_url?.includes('youtu') ? `https://img.youtube.com/vi/${(video.source_url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/) || [])[1]}/hqdefault.jpg` : ''),
         });
       }
     }
@@ -293,10 +296,10 @@ export async function listFacebookPages() {
   return response.json();
 }
 
-export async function publishClipToFacebook(clipId, { title, description, privacyStatus = 'public', pageId, tags } = {}) {
+export async function publishClipToFacebook(clipId, { title, description, privacyStatus = 'public', pageId, tags, thumbnailUrl } = {}) {
   const response = await apiFetch(`/api/social/clips/${clipId}/publish/facebook`, {
     method: 'POST',
-    body: JSON.stringify({ title, description, privacyStatus, pageId, tags }),
+    body: JSON.stringify({ title, description, privacyStatus, pageId, tags, thumbnailUrl }),
   });
   if (!response.ok) throw new Error(await parseError(response));
   return response.json();
@@ -313,6 +316,7 @@ export async function bulkPublishToFacebook(clips) {
         privacyStatus: c.privacyStatus ?? 'public',
         pageId: c.pageId,
         tags: c.tags,
+        thumbnailUrl: c.thumbnailUrl,
       })),
     }),
   });
@@ -346,10 +350,10 @@ export async function listInstagramAccounts() {
   return response.json();
 }
 
-export async function publishClipToInstagram(clipId, { title, description, pageId, tags } = {}) {
+export async function publishClipToInstagram(clipId, { title, description, pageId, tags, thumbnailUrl } = {}) {
   const response = await apiFetch(`/api/social/clips/${clipId}/publish/instagram`, {
     method: 'POST',
-    body: JSON.stringify({ title, description, pageId, tags }),
+    body: JSON.stringify({ title, description, pageId, tags, thumbnailUrl }),
   });
   if (!response.ok) throw new Error(await parseError(response));
   return response.json();
@@ -365,6 +369,7 @@ export async function bulkPublishToInstagram(clips) {
         description: c.description,
         pageId: c.pageId,
         tags: c.tags,
+        thumbnailUrl: c.thumbnailUrl,
       })),
     }),
   });

@@ -89,7 +89,7 @@ export default function ConnectYouTube() {
     try {
       const statusData = await getYouTubeStatus();
       setStatus(statusData);
-      
+
       if (statusData?.connected) {
         const [uploadsData, jobsData] = await Promise.all([
           listSocialUploads('youtube').catch(() => ({ items: [] })),
@@ -123,14 +123,14 @@ export default function ConnectYouTube() {
   const loadAll = useCallback(async (showRefresh = false) => {
     if (showRefresh) setRefreshing(true);
     else setLoading(true);
-    
+
     const isConn = await loadCoreData();
     if (isConn) {
       await loadPublishableClips();
     } else {
       setPublishableClips([]);
     }
-    
+
     setLoading(false);
     setRefreshing(false);
   }, [loadCoreData, loadPublishableClips]);
@@ -168,8 +168,8 @@ export default function ConnectYouTube() {
     const currentPending = jobs.filter((j) => j.status === 'queued' || j.status === 'processing').length;
     if (currentPending < prevPending.current) {
       setTimeout(() => {
-        listSocialUploads('youtube').then((data) => setUploads(data.items ?? [])).catch(() => {});
-        fetchPublishableClips('youtube').then((data) => setPublishableClips(data)).catch(() => {});
+        listSocialUploads('youtube').then((data) => setUploads(data.items ?? [])).catch(() => { });
+        fetchPublishableClips('youtube').then((data) => setPublishableClips(data)).catch(() => { });
       }, 2500);
     }
     prevPending.current = currentPending;
@@ -232,8 +232,9 @@ export default function ConnectYouTube() {
     try {
       const result = await publishClipToYouTube(clip.id, {
         title: clip.title,
-        description: publishDescription || "",
+        description: publishDescription || clip.reason || "",
         privacyStatus,
+        thumbnailUrl: clip.thumbnailUrl,
       });
       setMessage(`Upload queued! Job ID: ${result.jobId}`);
       setActiveTab('jobs');
@@ -264,8 +265,9 @@ export default function ConnectYouTube() {
         selected.map((clip) => ({
           clipId: clip.id,
           title: clip.title,
-          description: publishDescription || "",
+          description: publishDescription || clip.description || "",
           privacyStatus,
+          thumbnailUrl: clip.thumbnailUrl,
         })),
       );
       setMessage(`Bulk upload queued! Batch ID: ${result.batchId} (${result.total} clips)`);

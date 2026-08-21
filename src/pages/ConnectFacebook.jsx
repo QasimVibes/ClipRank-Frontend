@@ -239,8 +239,9 @@ export default function ConnectFacebook() {
         try {
             const result = await publishClipToFacebook(clip.id, {
                 title: clip.title,
-                description: publishDescription || "",
+                description: publishDescription || clip.reason || clip.description || "",
                 pageId: selectedPageId,
+                thumbnailUrl: clip.thumbnailUrl,
             });
             setMessage(`Upload queued! Job ID: ${result.jobId}`);
             setActiveTab('jobs');
@@ -271,8 +272,9 @@ export default function ConnectFacebook() {
                 selected.map((clip) => ({
                     clipId: clip.id,
                     title: clip.title,
-                    description: publishDescription || "",
+                    description: publishDescription || clip.reason || clip.description || "",
                     pageId: selectedPageId,
+                    thumbnailUrl: clip.thumbnailUrl,
                 })),
             );
             setMessage(`Bulk upload queued! Batch ID: ${result.batchId} (${result.total} clips)`);
